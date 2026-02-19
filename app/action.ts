@@ -1,6 +1,7 @@
 'use server';
 
-// 1. Define a clear type for the state
+import { cookies } from 'next/headers';
+
 export type ActionState = {
   success: boolean;
   message: string;
@@ -11,46 +12,54 @@ export type ActionState = {
 } | null;
 
 export async function loginAction(
-  prevState: ActionState, 
+  prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  // 2. Extract and Validate data
   const username = formData.get('username') as string;
   const password = formData.get('password') as string;
 
   if (!username || !password) {
-    return { 
-      success: false, 
-      message: "Please fill in all fields." 
+    return {
+      success: false,
+      message: 'Please fill in all fields.',
     };
   }
 
   try {
-    // 3. Simulate API delay / Database Check
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const USERNAME = process.env.USERNAME;
+    const PASSWORD = process.env.PASSWORD;
+    const KEY = process.env.KEY;
 
-    // 4. Logic (In production, replace with DB call & bcrypt.compare)
-    if (username === "admin" && password === "password") {
-      // Return success data
-      return { 
-        success: true, 
-        message: "Welcome back, Admin!" 
-      };
+    if (!USERNAME || !PASSWORD || !KEY) {
+      return { success: false, message: 'Server misconfigured' };
     }
 
-    console.log("env: ", process.env.KEY)
+    if (username !== USERNAME || password !== PASSWORD) {
+      return { success: false, message: 'Invalid credentials' };
+    }
 
-    // 5. Generic error to prevent "Username Enumeration"
-    return { 
-      success: false, 
-      message: "The credentials provided are incorrect." 
+    // Proper cookie generation
+    (await cookies()).set({
+      name: 'authToken',
+      value: KEY,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 * 24, // 1 day
+    });
+
+    return {
+      success: true,
+      message: 'Welcome back, Admin!',
     };
-
   } catch (error) {
-    // 6. Global error handling
-    return { 
-      success: false, 
-      message: error instanceof Error ? error.message : "A server error occurred. Please try again later." 
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : 'A server error occurred.',
     };
   }
 }
