@@ -17,10 +17,11 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
+      console.log("Enai", email, password)
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
       // Email Verification
-      await sendEmailVerification(userCredential.user);
+      await sendEmailVerification(auth.currentUser ?? userCredential.user)
       
       toast.success("Account created! Please check your email for verification.");
       setEmail("");
