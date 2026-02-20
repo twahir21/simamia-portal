@@ -9,6 +9,7 @@ interface User {
   email: string;
   phone: string;
   status: 'Active' | 'Inactive';
+  isVerified: boolean;
 }
 
 interface Transaction {
@@ -33,10 +34,10 @@ export default function Private() {
 
   // Hardcoded Users
   const users: User[] = [
-    { id: 'USR-001', shopName: 'John\'s Electronics', email: 'john@simamia.com', phone: '+255 123 456 789', status: 'Active' },
-    { id: 'USR-002', shopName: 'Sarah Fashion House', email: 'sarah@business.com', phone: '+255 234 567 890', status: 'Active' },
-    { id: 'USR-003', shopName: 'Chen\'s Grocery', email: 'mike@shop.tz', phone: '+255 345 678 901', status: 'Inactive' },
-    { id: 'USR-004', shopName: 'ABC Supermarket', email: 'info@abcshop.co.tz', phone: '+255 456 789 012', status: 'Active' },
+    { id: 'USR-001', shopName: 'John\'s Electronics', email: 'john@simamia.com', phone: '+255 123 456 789', status: 'Active', isVerified: true },
+    { id: 'USR-002', shopName: 'Sarah Fashion House', email: 'sarah@business.com', phone: '+255 234 567 890', status: 'Active', isVerified: true },
+    { id: 'USR-003', shopName: 'Chen\'s Grocery', email: 'mike@shop.tz', phone: '+255 345 678 901', status: 'Inactive', isVerified: false },
+    { id: 'USR-004', shopName: 'ABC Supermarket', email: 'info@abcshop.co.tz', phone: '+255 456 789 012', status: 'Active', isVerified: true },
   ];
 
   return (
@@ -132,6 +133,7 @@ export default function Private() {
             </div>
           )}
 
+
           {/* Users Table */}
           {activeTab === 'users' && (
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -143,6 +145,7 @@ export default function Private() {
                       <th className="px-6 py-4">Email</th>
                       <th className="px-6 py-4">Phone</th>
                       <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4">Verified</th>
                       <th className="px-6 py-4">Actions</th>
                     </tr>
                   </thead>
@@ -161,7 +164,15 @@ export default function Private() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <ActionButtons />
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium ${
+                            user.isVerified ? 'bg-sky-100 text-sky-700' : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <i className={`fa-solid ${user.isVerified ? 'fa-check-circle text-sky-600' : 'fa-clock text-gray-500'} w-3 h-3`} />
+                            {user.isVerified ? 'Verified' : 'Pending'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <ActionButtons /> {/* Pass user prop if needed */}
                         </td>
                       </tr>
                     ))}
