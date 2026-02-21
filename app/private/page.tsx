@@ -1,7 +1,7 @@
 "use client";
 
 import { SERVER_LINK } from '@/const/links.const';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 // Types for our data
@@ -16,9 +16,9 @@ interface User {
 
 interface Transaction {
   id: string;
-  transactionId: string;
   createdAt: string;
   expiredAt: string;
+  isUsed: boolean;
   amount: string;
 }
 
@@ -33,19 +33,14 @@ export default function Private() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [loading, setloading] = useState<boolean>(false);
+  const [initialLoad, setInitialLoad] = useState<boolean>(false);
+  const [transactions, setTransactions] = useState<Transaction[]| null>(null);
   const [formData, setFormData] = useState<TransactionForm>({
     transactionId: '',
     amount: '',
     expiredAt: '',
   });
 
-  // Hardcoded Transactions
-  const transactions: Transaction[] = [
-    { id: 'TXN-001', transactionId: 'TXN-99281', createdAt: '2024-05-20 09:30 AM', expiredAt: '2024-06-20 09:30 AM', amount: 'Tsh 450,000' },
-    { id: 'TXN-002', transactionId: 'TXN-99282', createdAt: '2024-05-21 02:15 PM', expiredAt: '2024-06-21 02:15 PM', amount: 'Tsh 120,000' },
-    { id: 'TXN-003', transactionId: 'TXN-99283', createdAt: '2024-05-21 04:45 PM', expiredAt: '2024-06-21 04:45 PM', amount: 'Tsh 85,000' },
-    { id: 'TXN-004', transactionId: 'TXN-99284', createdAt: '2024-05-22 11:00 AM', expiredAt: '2024-06-22 11:00 AM', amount: 'Tsh 230,000' },
-  ];
 
   // Hardcoded Users
   const users: User[] = [
@@ -77,6 +72,7 @@ export default function Private() {
         // Reset form or refresh data here
         setFormData({ transactionId: '', amount: '', expiredAt: '' });
         toast.success(message)
+        fetchTransactions();
       }else {
         toast.error(message)
       }
@@ -86,6 +82,58 @@ export default function Private() {
     } finally{
       setloading(false);
     }
+  };
+
+  const fetchTransactions = async () => {
+    setInitialLoad(true);
+    try {
+      const res = await fetch(`${SERVER_LINK}/api/admin`, { credentials: 'include' });
+      const json = await res.json();
+      if (json.success) setTransactions(json.data);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load transactions");
+    } finally {
+      setInitialLoad(false);
+    }
+  };
+
+  // Call this in a useEffect
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    toast.info(`Delete this ${id}?`, {
+      duration: Infinity, // Keep it open until user decides
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          // We use toast.promise to handle loading, success, and error states automatically
+          const deletePromise = async () => {
+            const res = await fetch(`${SERVER_LINK}/api/admin/${id}`, {
+              method: 'DELETE',
+              credentials: 'include',
+            });
+            
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message || "Failed to delete");
+            
+            fetchTransactions(); // Refresh the list
+            return data.message;
+          };
+
+          toast.promise(deletePromise(), {
+            loading: 'Deleting transaction...',
+            success: (message) => `${message}`,
+            error: (err) => `${err.message}`,
+          });
+        },
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => toast.dismiss(),
+      },
+    });
   };
 
   return (
@@ -158,25 +206,101 @@ export default function Private() {
                 <table className="w-full text-left text-sm min-w-160 md:min-w-full">
                   <thead className="bg-gray-50 border-b border-gray-300 text-gray-600 uppercase font-semibold">
                     <tr>
+                      <th className="px-6 py-4">S/N</th>
                       <th className="px-6 py-4">Transaction ID</th>
                       <th className="px-6 py-4">Created At</th>
                       <th className="px-6 py-4">Expired At</th>
                       <th className="px-6 py-4">Amount</th>
+                      <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {transactions.map((tx) => (
-                      <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 font-mono font-medium text-sky-600">{tx.transactionId}</td>
-                        <td className="px-6 py-4 text-gray-600">{tx.createdAt}</td>
-                        <td className="px-6 py-4 text-gray-600">{tx.expiredAt}</td>
-                        <td className="px-6 py-4 font-semibold text-gray-900">{tx.amount}</td>
-                        <td className="px-6 py-4">
-                          <ActionButtons />
+                    { initialLoad || !transactions ? (
+                      // Loading state
+                      <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center">
+                          <div className="flex justify-center">
+                            <svg 
+                              className="animate-spin h-8 w-8 text-sky-600" 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              fill="none" 
+                              viewBox="0 0 24 24"
+                            >
+                              <circle 
+                                className="opacity-25" 
+                                cx="12" 
+                                cy="12" 
+                                r="10" 
+                                stroke="currentColor" 
+                                strokeWidth="4"
+                              />
+                              <path 
+                                className="opacity-75" 
+                                fill="currentColor" 
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              />
+                            </svg>
+                          </div>
+                          <p className="mt-2 text-gray-500">Loading transactions...</p>
                         </td>
                       </tr>
-                    ))}
+                    ) : transactions.length === 0 ? (
+                      // Empty state row
+                      <tr>
+                        <td 
+                          colSpan={6} 
+                          className="px-6 py-12 text-center text-gray-500"
+                        >
+                          <div className="flex flex-col items-center justify-center gap-3">
+                            {/* Empty state icon */}
+                            <svg 
+                              className="w-12 h-12 text-gray-400" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={1.5} 
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                              />
+                            </svg>
+                            <p className="text-lg font-medium text-gray-600">No transactions found</p>
+                            <p className="text-sm text-gray-400">Transactions will appear here once created</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      // Map through transactions if array has items
+                      transactions.map((tx, i) => (
+                        <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 text-gray-600">{i+1}</td>
+                          <td className="px-6 py-4 font-mono font-medium text-sky-600">{tx.id}</td>
+                          <td className="px-6 py-4 text-gray-600">{tx.createdAt}</td>
+                          <td className="px-6 py-4 text-gray-600">{tx.expiredAt}</td>
+                          <td className="px-6 py-4 font-semibold text-gray-900">{tx.amount}</td>
+                          <td className="px-6 py-4">
+                            <span className={`
+                              inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                              ${tx.isUsed 
+                                ? 'bg-red-100 text-red-800' 
+                                : 'bg-green-100 text-green-800'
+                              }
+                            `}>
+                              {tx.isUsed ? 'Used' : 'Available'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <ActionButtons 
+                              id={tx.id}
+                              onDelete={handleDelete}
+                            />
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -222,7 +346,10 @@ export default function Private() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <ActionButtons /> {/* Pass user prop if needed */}
+                          <ActionButtons 
+                          id={"user"}
+                          onDelete={handleDelete}
+                          /> 
                         </td>
                       </tr>
                     ))}
@@ -282,12 +409,7 @@ export default function Private() {
                 >
                   Cancel
                 </button>
-                {/* <button
-                  type="submit"
-                  className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
-                >
-                  Submit Transaction
-                </button> */}
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -330,6 +452,7 @@ export default function Private() {
                     'Submit Transaction'
                   )}
                 </button>
+
               </div>
             </form>
           </div>
@@ -340,7 +463,7 @@ export default function Private() {
 }
 
 // Sub-component for buttons to keep the main code clean
-function ActionButtons() {
+function ActionButtons({ id, onDelete }: { id: string; onDelete: (id: string) => void }) {  
   return (
     <div className="flex items-center gap-2">
       <button className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-sky-600 transition-colors">
@@ -348,7 +471,9 @@ function ActionButtons() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       </button>
-      <button className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-red-600 transition-colors">
+      <button className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-red-600 transition-colors"
+        onClick={() => onDelete(id)}
+      >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
