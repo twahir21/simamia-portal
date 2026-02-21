@@ -32,6 +32,7 @@ export default function Private() {
   const [activeTab, setActiveTab] = useState<'transactions' | 'users'>('transactions');
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [loading, setloading] = useState<boolean>(false);
   const [formData, setFormData] = useState<TransactionForm>({
     transactionId: '',
     amount: '',
@@ -56,6 +57,7 @@ export default function Private() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setloading(true);
     try {
       const response = await fetch(`${SERVER_LINK}/api/admin`, {
         method: 'POST',
@@ -81,6 +83,8 @@ export default function Private() {
     
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "error in creating transaction")
+    } finally{
+      setloading(false);
     }
   };
 
@@ -278,11 +282,53 @@ export default function Private() {
                 >
                   Cancel
                 </button>
-                <button
+                {/* <button
                   type="submit"
                   className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
                 >
                   Submit Transaction
+                </button> */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`
+                    rounded-lg px-4 py-2 text-sm font-medium text-white 
+                    transition-all duration-200 ease-in-out
+                    ${loading 
+                      ? 'bg-sky-400 cursor-not-allowed opacity-75' 
+                      : 'bg-sky-600 hover:bg-sky-700 active:scale-95'
+                    }
+                    focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2
+                    disabled:pointer-events-none
+                  `}
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg 
+                        className="h-4 w-4 animate-spin text-white" 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24"
+                      >
+                        <circle 
+                          className="opacity-25" 
+                          cx="12" 
+                          cy="12" 
+                          r="10" 
+                          stroke="currentColor" 
+                          strokeWidth="4"
+                        />
+                        <path 
+                          className="opacity-75" 
+                          fill="currentColor" 
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      <span>Processing...</span>
+                    </span>
+                  ) : (
+                    'Submit Transaction'
+                  )}
                 </button>
               </div>
             </form>
