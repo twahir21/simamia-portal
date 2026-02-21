@@ -42,6 +42,12 @@ export default function Private() {
   });
 
 
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [statusValue, setStatusValue] = useState<boolean>(false);
+
+
   // Hardcoded Users
   const users: User[] = [
     { id: 'USR-001', shopName: 'John\'s Electronics', email: 'john@simamia.com', phone: '+255 123 456 789', status: 'Active', isVerified: true },
@@ -83,6 +89,7 @@ export default function Private() {
       setloading(false);
     }
   };
+
 
   const fetchTransactions = async () => {
     setInitialLoad(true);
@@ -135,6 +142,36 @@ export default function Private() {
       },
     });
   };
+
+const handleStatusUpdate = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!selectedTransaction) return;
+  
+  setStatusLoading(true);
+  try {
+    const response = await fetch(`${SERVER_LINK}/api/admin/${selectedTransaction.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ isUsed: statusValue }),
+    });
+
+    const ans = await response.json();
+
+    if(ans.success) {
+      setShowStatusModal(false);
+      toast.success(`Status updated to ${statusValue ? 'Used' : 'Available'}`);
+      fetchTransactions(); // Refresh the list
+      setSelectedTransaction(null);
+    } else {
+      toast.error(ans.message);
+    }
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : "Error updating status");
+  } finally {
+    setStatusLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10">
@@ -280,7 +317,7 @@ export default function Private() {
                           <td className="px-6 py-4 font-mono font-medium text-sky-600">{tx.id}</td>
                           <td className="px-6 py-4 text-gray-600">{tx.createdAt}</td>
                           <td className="px-6 py-4 text-gray-600">{tx.expiredAt}</td>
-                          <td className="px-6 py-4 font-semibold text-gray-900">{tx.amount}</td>
+                          <td className="px-6 py-4 font-semibold text-gray-900">{Number(tx.amount).toLocaleString()}/=</td>
                           <td className="px-6 py-4">
                             <span className={`
                               inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -296,6 +333,12 @@ export default function Private() {
                             <ActionButtons 
                               id={tx.id}
                               onDelete={handleDelete}
+                                  onStatusToggle={(id) => {
+                                  const transaction = transactions.find(t => t.id === id);
+                                  setSelectedTransaction(transaction || null);
+                                  setStatusValue(transaction?.isUsed || false);
+                                  setShowStatusModal(true);
+                                }}
                             />
                           </td>
                         </tr>
@@ -347,8 +390,13 @@ export default function Private() {
                         </td>
                         <td className="px-6 py-4">
                           <ActionButtons 
-                          id={"user"}
-                          onDelete={handleDelete}
+                            id={"user"}
+                            onDelete={handleDelete}
+                                onStatusToggle={() => {
+                              setSelectedTransaction(null);
+                              setStatusValue(false);
+                              setShowStatusModal(true);
+                            }}
                           /> 
                         </td>
                       </tr>
@@ -458,15 +506,125 @@ export default function Private() {
           </div>
         </div>
       )}
+      
+      {/* Status Update Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-gray-900">Update Transaction Status</h3>
+            
+            <form onSubmit={handleStatusUpdate} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Transaction ID</label>
+                <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
+                  {selectedTransaction?.id}
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Status</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="false"
+                      checked={statusValue === false}
+                      onChange={() => setStatusValue(false)}
+                      className="w-4 h-4 text-sky-600"
+                    />
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      Available
+                    </span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="true"
+                      checked={statusValue === true}
+                      onChange={() => setStatusValue(true)}
+                      className="w-4 h-4 text-sky-600"
+                    />
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                      Used
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowStatusModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={statusLoading}
+                  className={`
+                    rounded-lg px-4 py-2 text-sm font-medium text-white 
+                    transition-all duration-200 ease-in-out
+                    ${statusLoading 
+                      ? 'bg-sky-400 cursor-not-allowed opacity-75' 
+                      : 'bg-sky-600 hover:bg-sky-700 active:scale-95'
+                    }
+                    focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2
+                    disabled:pointer-events-none
+                  `}
+                >
+                  {statusLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg 
+                        className="h-4 w-4 animate-spin text-white" 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24"
+                      >
+                        <circle 
+                          className="opacity-25" 
+                          cx="12" 
+                          cy="12" 
+                          r="10" 
+                          stroke="currentColor" 
+                          strokeWidth="4"
+                        />
+                        <path 
+                          className="opacity-75" 
+                          fill="currentColor" 
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      <span>Updating...</span>
+                    </span>
+                  ) : (
+                    'Update Status'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // Sub-component for buttons to keep the main code clean
-function ActionButtons({ id, onDelete }: { id: string; onDelete: (id: string) => void }) {  
-  return (
+function ActionButtons({ id, onDelete, onStatusToggle }: { 
+  id: string; 
+  onDelete: (id: string) => void;
+  onStatusToggle: (id: string) => void;
+}) {
+    return (
     <div className="flex items-center gap-2">
-      <button className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-sky-600 transition-colors">
+      <button className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-sky-600 transition-colors"
+       onClick={() => onStatusToggle(id)}
+      >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
