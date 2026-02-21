@@ -22,7 +22,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log("env in layout: ", process.env.KEY)
   return (
     <html lang="en">
       <head>

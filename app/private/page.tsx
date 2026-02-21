@@ -1,6 +1,8 @@
 "use client";
 
+import { SERVER_LINK } from '@/const/links.const';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 // Types for our data
 interface User {
@@ -20,9 +22,21 @@ interface Transaction {
   amount: string;
 }
 
+interface TransactionForm {
+  transactionId: string;
+  amount: string;
+  expiredAt: string;
+}
+
 export default function Private() {
   const [activeTab, setActiveTab] = useState<'transactions' | 'users'>('transactions');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState<TransactionForm>({
+    transactionId: '',
+    amount: '',
+    expiredAt: '',
+  });
 
   // Hardcoded Transactions
   const transactions: Transaction[] = [
@@ -39,6 +53,36 @@ export default function Private() {
     { id: 'USR-003', shopName: 'Chen\'s Grocery', email: 'mike@shop.tz', phone: '+255 345 678 901', status: 'Inactive', isVerified: false },
     { id: 'USR-004', shopName: 'ABC Supermarket', email: 'info@abcshop.co.tz', phone: '+255 456 789 012', status: 'Active', isVerified: true },
   ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${SERVER_LINK}/api/admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      });
+
+      const ans = await response.json() as { success: boolean; message: string | object };
+
+      const message = typeof ans.message === 'object' 
+        ? JSON.stringify(ans.message) 
+        : ans.message;
+
+      if(ans.success) {
+        setShowModal(false);
+        // Reset form or refresh data here
+        setFormData({ transactionId: '', amount: '', expiredAt: '' });
+        toast.success(message)
+      }else {
+        toast.error(message)
+      }
+    
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "error in creating transaction")
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10">
@@ -96,7 +140,9 @@ export default function Private() {
             <h2 className="text-xl font-bold text-gray-800">
               {activeTab === 'transactions' ? 'Admin Posted Transactions' : 'System Users'}
             </h2>
-            <button className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 self-start sm:self-auto">
+            <button className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 self-start sm:self-auto"
+              onClick={() => activeTab === 'transactions' ? setShowModal(true) : null}
+            >
               {activeTab === 'transactions' ? 'Create Transaction' : 'Add User'}
             </button>
           </div>
@@ -183,6 +229,66 @@ export default function Private() {
           )}
         </section>
       </div>
+
+      {/* Modal Overlay */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-gray-900">Create New Transaction</h3>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Transaction ID</label>
+                <input
+                  required
+                  type="text"
+                  className="mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-sky-500 focus:ring-sky-500 outline-none"
+                  value={formData.transactionId}
+                  onChange={(e) => setFormData({...formData, transactionId: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Amount</label>
+                <input
+                  required
+                  type="number"
+                  className="mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-sky-500 focus:ring-sky-500 outline-none"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
+                <input
+                  required
+                  type="date"
+                  className="mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-sky-500 focus:ring-sky-500 outline-none"
+                  value={formData.expiredAt}
+                  onChange={(e) => setFormData({...formData, expiredAt: e.target.value})}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
+                >
+                  Submit Transaction
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
