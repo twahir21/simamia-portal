@@ -1,5 +1,6 @@
 import { adminDb } from '@/firebase/admin.firebase';
 import { auth } from '@/firebase/config.firebase';
+import { UserStatus, UserVerification } from '@/ts/users.types';
 import { registerSchema } from '@/validations/registration.valid';
 import { FieldValue } from 'firebase-admin/firestore';
 import { FirebaseError } from 'firebase/app';
@@ -29,8 +30,8 @@ export async function POST(request: Request) {
         shopName,
         phoneNumber,
         email,
-        status: "Active" as "Active" | "Inactive",
-        verified: "Pending" as "Pending" | "Verified",
+        status: "Active" as UserStatus,
+        verified: "Pending" as UserVerification,
         createdAt: FieldValue.serverTimestamp(), 
     });
     

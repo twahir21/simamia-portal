@@ -1,18 +1,11 @@
 "use client";
 
 import { SERVER_LINK } from '@/const/links.const';
+import { UserShop } from '@/ts/users.types';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 // Types for our data
-interface User {
-  id: string;
-  shopName: string;
-  email: string;
-  phone: string;
-  status: 'Active' | 'Inactive';
-  isVerified: boolean;
-}
 
 interface Transaction {
   id: string;
@@ -35,6 +28,7 @@ export default function Private() {
   const [loading, setloading] = useState<boolean>(false);
   const [initialLoad, setInitialLoad] = useState<boolean>(false);
   const [transactions, setTransactions] = useState<Transaction[]| null>(null);
+  const [userShops, setUsershops] = useState<UserShop[] | null> (null);
   const [formData, setFormData] = useState<TransactionForm>({
     transactionId: '',
     amount: '',
@@ -47,14 +41,6 @@ export default function Private() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [statusValue, setStatusValue] = useState<boolean>(false);
 
-
-  // Hardcoded Users
-  const users: User[] = [
-    { id: 'USR-001', shopName: 'John\'s Electronics', email: 'john@simamia.com', phone: '+255 123 456 789', status: 'Active', isVerified: true },
-    { id: 'USR-002', shopName: 'Sarah Fashion House', email: 'sarah@business.com', phone: '+255 234 567 890', status: 'Active', isVerified: true },
-    { id: 'USR-003', shopName: 'Chen\'s Grocery', email: 'mike@shop.tz', phone: '+255 345 678 901', status: 'Inactive', isVerified: false },
-    { id: 'USR-004', shopName: 'ABC Supermarket', email: 'info@abcshop.co.tz', phone: '+255 456 789 012', status: 'Active', isVerified: true },
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,9 +90,25 @@ export default function Private() {
     }
   };
 
+  const fetchUsers = async () => {
+    setInitialLoad(true);
+    try {
+      const res = await fetch(`${SERVER_LINK}/api/users`, { credentials: 'include' });
+      const json = await res.json();
+
+      console.log("Shops: ", json);
+      if (json.success) setUsershops(json.data);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load transactions");
+    } finally {
+      setInitialLoad(false);
+    }
+  };
+
   // Call this in a useEffect
   useEffect(() => {
     fetchTransactions();
+    fetchUsers()
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -330,7 +332,7 @@ const handleStatusUpdate = async (e: React.FormEvent) => {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <ActionButtons 
+                            <Actions 
                               id={tx.id}
                               onDelete={handleDelete}
                                   onStatusToggle={(id) => {
@@ -363,44 +365,88 @@ const handleStatusUpdate = async (e: React.FormEvent) => {
                       <th className="px-6 py-4">Phone</th>
                       <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4">Verified</th>
-                      <th className="px-6 py-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {users.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 font-medium text-gray-900">{user.shopName}</td>
-                        <td className="px-6 py-4 text-gray-600">{user.email}</td>
-                        <td className="px-6 py-4 text-gray-600">{user.phone}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium ${
-                            user.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                          }`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${user.status === 'Active' ? 'bg-green-600' : 'bg-red-600'}`}></span>
-                            {user.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium ${
-                            user.isVerified ? 'bg-sky-100 text-sky-700' : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            <i className={`fa-solid ${user.isVerified ? 'fa-check-circle text-sky-600' : 'fa-clock text-gray-500'} w-3 h-3`} />
-                            {user.isVerified ? 'Verified' : 'Pending'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <ActionButtons 
-                            id={"user"}
-                            onDelete={handleDelete}
-                                onStatusToggle={() => {
-                              setSelectedTransaction(null);
-                              setStatusValue(false);
-                              setShowStatusModal(true);
-                            }}
-                          /> 
+                    {initialLoad || !userShops ? (
+                      // Loading state
+                      <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center">
+                          <div className="flex justify-center">
+                            <svg 
+                              className="animate-spin h-8 w-8 text-sky-600" 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              fill="none" 
+                              viewBox="0 0 24 24"
+                            >
+                              <circle 
+                                className="opacity-25" 
+                                cx="12" 
+                                cy="12" 
+                                r="10" 
+                                stroke="currentColor" 
+                                strokeWidth="4"
+                              />
+                              <path 
+                                className="opacity-75" 
+                                fill="currentColor" 
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              />
+                            </svg>
+                          </div>
+                          <p className="mt-2 text-gray-500">Loading User shops...</p>
                         </td>
                       </tr>
-                    ))}
+                    ) : userShops.length === 0 ? (
+                    // Empty state row
+                    <tr>
+                      <td 
+                        colSpan={6} 
+                        className="px-6 py-12 text-center text-gray-500"
+                      >
+                        <div className="flex flex-col items-center justify-center gap-3">
+                          {/* Empty state icon */}
+                          <svg 
+                            className="w-12 h-12 text-gray-400" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth={1.5} 
+                              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" 
+                            />
+                          </svg>
+                          <p className="text-lg font-medium text-gray-600">No User Shop found</p>
+                          <p className="text-sm text-gray-400">User shops will appear here once created</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : userShops.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900">{user.shopName}</td>
+                      <td className="px-6 py-4 text-gray-600">{user.email}</td>
+                      <td className="px-6 py-4 text-gray-600">{user.phoneNumber}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium ${
+                          user.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${user.status === 'Active' ? 'bg-green-600' : 'bg-red-600'}`}></span>
+                          {user.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium ${
+                          user.verified === "Verified" ? 'bg-sky-100 text-sky-700' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          <i className={`fa-solid ${user.verified === "Verified" ? 'fa-check-circle text-sky-600' : 'fa-clock text-gray-500'} w-3 h-3`} />
+                          {user.verified === 'Verified' ? 'Verified' : 'Pending'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
                   </tbody>
                 </table>
               </div>
@@ -422,7 +468,7 @@ const handleStatusUpdate = async (e: React.FormEvent) => {
                   required
                   type="text"
                   className="mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-sky-500 focus:ring-sky-500 outline-none"
-                  value={formData.transactionId}
+                  value={extractReference(formData.transactionId)}
                   onChange={(e) => setFormData({...formData, transactionId: e.target.value})}
                 />
               </div>
@@ -615,7 +661,7 @@ const handleStatusUpdate = async (e: React.FormEvent) => {
 }
 
 // Sub-component for buttons to keep the main code clean
-function ActionButtons({ id, onDelete, onStatusToggle }: { 
+function Actions({ id, onDelete, onStatusToggle }: { 
   id: string; 
   onDelete: (id: string) => void;
   onStatusToggle: (id: string) => void;
@@ -638,4 +684,12 @@ function ActionButtons({ id, onDelete, onStatusToggle }: {
       </button>
     </div>
   );
+}
+
+function extractReference(text: string): string {
+  // Pattern: "Kumbukumbu No." + (anything) + "."
+  const regex = /Kumbukumbu No\.(.*?)\./;
+  const match = text.match(regex);
+
+  return match ? match[1].trim() : text;
 }
