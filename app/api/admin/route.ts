@@ -79,8 +79,12 @@ export async function GET() {
         id: doc.id,
         ...data,
         // Convert Firestore Timestamp to readable JS Date string
-        createdAt: data.createdAt?.toDate?.().toLocaleString() || '',
-        expiredAt: data.expiredAt?.toDate?.().toLocaleString() || '',
+        createdAt: data.createdAt?._seconds 
+          ? new Date(data.createdAt._seconds * 1000).toLocaleString('en-GB', { timeZone: 'Africa/Nairobi' }) 
+          : '',
+        expiredAt: data.expiredAt?._seconds 
+          ? new Date(data.expiredAt._seconds * 1000).toLocaleString('en-GB', { timeZone: 'Africa/Nairobi' }) 
+          : '',
       };
     });
 

@@ -96,7 +96,6 @@ export default function Private() {
       const res = await fetch(`${SERVER_LINK}/api/users`, { credentials: 'include' });
       const json = await res.json();
 
-      console.log("Shops: ", json);
       if (json.success) setUsershops(json.data);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to load transactions");
@@ -110,6 +109,7 @@ export default function Private() {
     fetchTransactions();
     fetchUsers()
   }, []);
+
 
   const handleDelete = async (id: string) => {
     toast.info(`Delete this ${id}?`, {
@@ -360,11 +360,13 @@ const handleStatusUpdate = async (e: React.FormEvent) => {
                 <table className="w-full text-left text-sm min-w-160 md:min-w-full">
                   <thead className="bg-gray-50 border-b border-gray-300 text-gray-600 uppercase font-semibold">
                     <tr>
+                      <th className="px-6 py-4">S/N</th>
                       <th className="px-6 py-4">Shop Name</th>
                       <th className="px-6 py-4">Email</th>
                       <th className="px-6 py-4">Phone</th>
                       <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4">Verified</th>
+                      <th className="px-6 py-4">Valid Until</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -424,8 +426,9 @@ const handleStatusUpdate = async (e: React.FormEvent) => {
                         </div>
                       </td>
                     </tr>
-                  ) : userShops.map((user) => (
+                  ) : userShops.map((user, i) => (
                     <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 text-gray-600">{i + 1}</td>
                       <td className="px-6 py-4 font-medium text-gray-900">{user.shopName}</td>
                       <td className="px-6 py-4 text-gray-600">{user.email}</td>
                       <td className="px-6 py-4 text-gray-600">{user.phoneNumber}</td>
@@ -444,6 +447,13 @@ const handleStatusUpdate = async (e: React.FormEvent) => {
                           <i className={`fa-solid ${user.verified === "Verified" ? 'fa-check-circle text-sky-600' : 'fa-clock text-gray-500'} w-3 h-3`} />
                           {user.verified === 'Verified' ? 'Verified' : 'Pending'}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">
+                        {new Date(user.endsAt._seconds * 1000)
+                          .toLocaleString('en-GB', { 
+                            timeZone: 'Africa/Nairobi'                          
+                          })
+                        }
                       </td>
                     </tr>
                   ))}

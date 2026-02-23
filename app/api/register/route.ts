@@ -1,4 +1,4 @@
-import { adminDb } from '@/firebase/admin.firebase';
+import { adminAuth, adminDb } from '@/firebase/admin.firebase';
 import { auth } from '@/firebase/config.firebase';
 import { UserStatus, UserVerification } from '@/ts/users.types';
 import { registerSchema } from '@/validations/registration.valid';
@@ -6,6 +6,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { FirebaseError } from 'firebase/app';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { NextResponse } from 'next/server';
+
 
 export async function POST(request: Request) {
   try {
@@ -19,23 +20,44 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    const { shopName, phoneNumber, email, password } = validation.data;
+    const { shopName, phoneNumber, email } = validation.data;
 
-    
-    // Create the user in Firebase
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // 1. Check if email already exists
+    try {
+      const existingUser = await adminAuth.getUserByEmail(email);
+      
+      // If code execution reaches here, the user exists
+      return NextResponse.json({
+        success: true,
+        message: "User is already registered. Please log in.",
+        uid: existingUser.uid
+      }, { status: 200 });
 
-    // save user info.
+    } catch (authError) {
+      // If error code is NOT 'auth/user-not-found', something else went wrong
+      if (authError instanceof FirebaseError) {
+        if (authError.code !== 'auth/user-not-found') {
+          throw authError; 
+        }
+      }
+      // If it IS 'auth/user-not-found', we simply proceed to registration below
+    }
+
+    // 2. Create the user in Firebase Auth (Client SDK used here)
+    const userCredential = await createUserWithEmailAndPassword(auth, email, process.env.USER_ACCOUNT_PASSWORD!);
+
+    // 3. Save shop details to Firestore (Admin SDK)
     await adminDb.collection('shops').doc(userCredential.user.uid).set({
         shopName,
         phoneNumber,
         email,
         status: "Active" as UserStatus,
         verified: "Pending" as UserVerification,
+        endsAt: new Date(new Date().setMonth(new Date().getMonth() + 1)),
         createdAt: FieldValue.serverTimestamp(), 
     });
     
-    // Trigger verification email
+    // 4. Trigger verification email
     await sendEmailVerification(userCredential.user);
 
     return NextResponse.json({
@@ -45,28 +67,14 @@ export async function POST(request: Request) {
     }, { status: 201 });
 
   } catch (error) {
-    // --- Handle Specific Firebase Errors ---
+    // Handle registration-specific errors (like weak password)
     if (error instanceof FirebaseError) {
-      if (error.code === 'auth/email-already-in-use') {
-        return NextResponse.json({
-          success: false,
-          message: "This email is already registered. Please log in instead."
-        }, { status: 409 }); // 409 Conflict is standard for existing resources
-      }
-
-      if (error.code === 'auth/weak-password') {
-        return NextResponse.json({
-          success: false,
-          message: "The password provided is too weak."
-        }, { status: 400 });
-      }
+       return NextResponse.json({ success: false, message: error.message }, { status: 400 });
     }
 
-    // Generic fallback for unexpected errors
-    console.error("Registration Error:", error);
     return NextResponse.json({
       success: false,
-      message: error instanceof Error ? error.message : "An unexpected error occurred during registration."
+      message: "An unexpected error occurred during registration."
     }, { status: 500 });
   }
 }

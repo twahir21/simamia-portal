@@ -1,8 +1,8 @@
 curl -X POST http://localhost:3000/api/register \
   -H "Content-Type: application/json" \
   -d '{
-    "shopName": "Your Shop Name",
+    "shopName": "Simamia shop",
     "phoneNumber": "+255675986789",
-    "email": "shop@example.com",
+    "email": "twahirsudy3@gmail.com",
     "password": "yourPassword123"
   }'

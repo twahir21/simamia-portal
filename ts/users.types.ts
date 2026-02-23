@@ -9,4 +9,5 @@ export type UserShop = {
     status: UserStatus;
     verified: UserVerification;
     createdAt: Date;
+    endsAt: { _seconds: number, _nanoseconds: number };
 }
