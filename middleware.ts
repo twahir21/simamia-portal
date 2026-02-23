@@ -13,12 +13,12 @@ export function middleware(request: NextRequest) {
 
   // 2. Logic: If not authenticated and trying to access /private
   if (!isAuthentic && pathname.startsWith('/private')) {
-    const loginUrl = new URL('/', request.url);
+    const loginUrl = new URL('/auth', request.url);
     return NextResponse.redirect(loginUrl);
   }
 
   // 3. Logic: If already authenticated and trying to access login (/)
-  if (isAuthentic && pathname === '/') {
+  if (isAuthentic && pathname === '/auth') {
     const dashboardUrl = new URL('/private', request.url);
     return NextResponse.redirect(dashboardUrl);
   }
