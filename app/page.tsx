@@ -8,6 +8,15 @@ import "aos/dist/aos.css";
 import { Download, PlayCircle, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import ProblemSolution from "@/ui/ProblemSoln";
+import Features from "@/ui/Features";
+import FAQ from "@/ui/faq";
+import { Righteous, Zain } from "next/font/google";
+
+const zain = Righteous({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export default function Hero() {
   useEffect(() => {
@@ -51,10 +60,10 @@ export default function Hero() {
               <span className="text-sm font-medium text-gray-600">5+ Shops Verified</span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-extrabold leading-tight text-gray-900 tracking-tight">
+            <h1 className={` ${zain.className} text-4xl md:text-6xl font-extrabold leading-tight text-gray-900 tracking-tight`}>
               Chukua Udhibiti wa{" "}
               <span className="bg-clip-text text-transparent bg-linear-to-r from-sky-600 to-emerald-500">
-                Biashara Yako
+                BIASHARA YAKO
               </span>{" "}
               Leo.
             </h1>
@@ -130,6 +139,82 @@ export default function Hero() {
 
     {/* Solution */}
     <ProblemSolution />
+
+    {/* Features */}
+    <Features />
+    
+    <section className="w-full py-20 bg-slate-900 text-white">
+      <div className="max-w-6xl mx-auto px-4 text-center rounded-3xl p-8 bg-white/10 backdrop-blur-lg border border-white/20">
+        <div className="relative inline-block mb-6">
+          {/* Subtle "glow" or "aura" behind the text */}
+          <div className="absolute -inset-1 bg-linear-to-r from-sky-400 to-indigo-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
+          
+          <h2 className="relative text-3xl md:text-5xl font-extrabold tracking-tight">
+            <span className={`${zain.className} bg-clip-text text-transparent bg-linear-to-r from-white via-sky-100 to-white`}>
+              Start Managing Your Business 
+            </span>
+            <br />
+            <span className="relative">
+              <span className="text-sky-400">Smarter Today</span>
+              {/* Decorative Brush/Underline Effect */}
+              <svg className="absolute -bottom-2 left-0 w-full h-2 text-sky-500/50" viewBox="0 0 100 10" preserveAspectRatio="none">
+                <path d="M0 5 Q 25 0, 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+              </svg>
+            </span>
+          </h2>
+        </div>
+
+        <p className="text-lg opacity-90 mb-8">
+          Offline-ready. Fast. Built for real businesses in Africa.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+
+          {/* APK Download */}
+          <a
+            href="/apk/app-release.apk"
+            className="flex items-center gap-3 px-8 py-3 bg-white text-indigo-600 font-bold rounded-2xl shadow-lg hover:scale-105 transition-transform duration-200 group"
+          >
+            {/* Android Icon */}
+            <svg 
+              viewBox="0 0 24 24" 
+              className="w-6 h-6 fill-indigo-600 group-hover:rotate-12 transition-transform" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M17.523 15.3414C17.0609 15.3414 16.6903 14.9708 16.6903 14.5087C16.6903 14.0465 17.0609 13.6759 17.523 13.6759C17.9852 13.6759 18.3558 14.0465 18.3558 14.5087C18.3558 14.9708 17.9852 15.3414 17.523 15.3414ZM6.477 15.3414C6.01485 15.3414 5.64424 14.9708 5.64424 14.5087C5.64424 14.0465 6.01485 13.6759 6.477 13.6759C6.93915 13.6759 7.30976 14.0465 7.30976 14.5087C7.30976 14.9708 6.93915 15.3414 6.477 15.3414ZM17.8431 11.2335L19.9881 7.51811C20.1255 7.2798 20.0438 6.97491 19.8055 6.83751C19.5673 6.70012 19.2624 6.7818 19.125 7.02011L16.9427 10.8C15.4641 10.1227 13.7915 9.75 12 9.75C10.2085 9.75 8.53592 10.1227 7.05731 10.8L4.875 7.02011C4.7376 6.7818 4.43272 6.70012 4.1945 6.83751C3.95627 6.97491 3.8745 7.2798 4.0119 7.51811L6.15693 11.2335C2.61331 13.1539 0.20892 16.8228 0 21.1111H24C23.7911 16.8228 21.3867 13.1539 17.8431 11.2335Z" />
+            </svg>
+            Download APK
+          </a>
+
+          {/* Play Store Coming Soon */}
+          <button
+            disabled
+            className="flex items-center gap-3 px-8 py-3 bg-black text-white border border-white/20 rounded-2xl opacity-70 cursor-not-allowed group"
+          >
+            {/* Play Store Icon */}
+            <svg 
+              viewBox="0 0 24 24" 
+              className="w-6 h-6" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path fill="#4DB6AC" d="M3,20.5V3.5C3,2.9 3.4,2.4 4,2.1L12.5,12L4,21.9C3.4,21.6 3,21.1 3,20.5Z" />
+              <path fill="#DCE775" d="M16.4,15.1L4,21.9C4.3,22 4.6,22 5,21.8L16.4,15.1Z" />
+              <path fill="#FF8A65" d="M21,12.5L16.4,15.1L12.5,12L16.4,8.9L21,11.5C21.6,11.8 21.6,12.2 21,12.5Z" />
+              <path fill="#F06292" d="M16.4,8.9L5,2.2C4.6,2 4.3,2 4,2.1L16.4,8.9Z" />
+            </svg>
+            <div className="flex flex-col items-start leading-none">
+              <span className="text-[10px] uppercase tracking-tighter opacity-60">Coming soon on</span>
+              <span className="text-sm font-bold">Google Play</span>
+            </div>
+          </button>
+
+        </div>
+      </div>
+    </section>
+
+    {/* Faq */}
+    <FAQ />
+
   </>
 }
 
