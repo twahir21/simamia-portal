@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     siteName: "Simamia",
     images: [
       {
-        url: "/og-simamia.png", 
+        url: "/og-simamia.webp", 
         width: 1200,
         height: 630,
         alt: "Simamia Business Management App",
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     title: "Simamia App",
     description:
       "Offline-first business management app for tracking sales, expenses, debts, and stock.",
-    images: ["/og-simamia.png"],
+    images: ["/og-simamia.webp"],
   },
 
   icons: {
