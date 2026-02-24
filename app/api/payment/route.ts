@@ -1,4 +1,5 @@
 import { adminDb } from "@/firebase/admin.firebase";
+import { generateToken } from "@/logic/token.logic";
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -77,13 +78,17 @@ export async function POST(request: Request) {
         lastPaymentId: transactionId
       });
 
-      return { newExpiryDate };
+      const expiryTimestamp = shopDoc.data()?.endsAt?.seconds;
+
+      const token = generateToken(shopId, expiryTimestamp, "Active");
+
+      return { token };
     });
 
     return NextResponse.json({
       success: true,
       message: "Payment processed and shop activated.",
-      newExpiry: result.newExpiryDate
+      token: result.token
     }, { status: 200 });
 
   } catch (error) {
