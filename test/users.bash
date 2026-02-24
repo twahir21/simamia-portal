@@ -3,6 +3,5 @@ curl -X POST http://localhost:3000/api/register \
   -d '{
     "shopName": "Simamia shop",
     "phoneNumber": "+255675986789",
-    "email": "twahirsudy3@gmail.com",
-    "password": "yourPassword123"
+    "email": "twahirsudy3@gmail.com"
   }'

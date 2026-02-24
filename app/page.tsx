@@ -10,7 +10,8 @@ import { motion } from "framer-motion";
 import ProblemSolution from "@/ui/ProblemSoln";
 import Features from "@/ui/Features";
 import FAQ from "@/ui/faq";
-import { Righteous, Zain } from "next/font/google";
+import { Righteous } from "next/font/google";
+import WhatsAppButton from "@/ui/whatsapp";
 
 const zain = Righteous({
   weight: "400",
@@ -214,6 +215,8 @@ export default function Hero() {
 
     {/* Faq */}
     <FAQ />
+
+    <WhatsAppButton />
 
   </>
 }
