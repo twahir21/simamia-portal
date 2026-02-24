@@ -13,8 +13,64 @@ const delius = Delius({
 });
 
 export const metadata: Metadata = {
-  title: "Simamia Portal",
-  description: "Management web portal for Simamia App",
+  title: {
+    default: "Simamia App",
+    template: "%s | Simamia",
+  },
+  description:
+    "Simamia is a business management app that helps you track sales, expenses, debts, and stock easily. Works offline, fast, and secure—built for small businesses.",
+
+  keywords: [
+    "Simamia",
+    "business management app",
+    "offline POS app",
+    "sales tracking app",
+    "expenses tracker",
+    "debt management app",
+    "inventory management Africa",
+    "SME tools Tanzania",
+    "offline business app",
+  ],
+
+  authors: [{ name: "Simamia Team" }],
+  creator: "Simamia",
+  publisher: "Simamia",
+
+  metadataBase: new URL("https://simamia.co.tz"),
+
+  openGraph: {
+    title: "Simamia App — Manage Your Business Smarter",
+    description:
+      "Track sales, expenses, debts, and stock in one app. Works offline and designed for real businesses in Africa.",
+    url: "https://simamia.co.tz",
+    siteName: "Simamia",
+    images: [
+      {
+        url: "/og-simamia.png", 
+        width: 1200,
+        height: 630,
+        alt: "Simamia Business Management App",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Simamia App",
+    description:
+      "Offline-first business management app for tracking sales, expenses, debts, and stock.",
+    images: ["/og-simamia.png"],
+  },
+
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
+
+  category: "business",
 };
 
 export default function RootLayout({
