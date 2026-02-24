@@ -7,8 +7,6 @@ export const generateToken = (
 ) => {
     try {
         const privateKey = process.env.JWT_PRIVATE_KEY!.replace(/\\n/g, '\n');
-
-        console.log("Private Key, ", privateKey)
   
         const licenseData = {
             uid,
