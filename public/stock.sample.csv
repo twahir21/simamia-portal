@@ -1,2 +1,2 @@
-QR Code,Product Name,Category,Quantity,Unit,Selling Price,Supplier Name,Warehouse Location
-133123123123,Chungwa,,6,,400,,
+QR Code,Product Name,Category,Quantity,Unit,Selling Price,Buying Price,Supplier Name,Stock Location,Expiry Date,Total Costs,Minimum Stock,Target Maximum Stock
+133123123123,Product A,,6,,400,200,,,,,,
