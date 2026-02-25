@@ -7,6 +7,11 @@
 
 4. return token (maybe update token) update lastONline 
 
+# on verify
+5. compare uid with one stored / firebase account to avoid replay attacks (borrow token from friend)
+6. check phone time tempering with last online and expiry date
+7. check if status is valid
+
 ```json
 {
     "lastOnline": "",
@@ -29,3 +34,8 @@ openssl rsa -in private.pem -pubout -out public.pem
 openssl genpkey -algorithm Ed25519 -out private.pem
 openssl pkey -in private.pem -pubout -out public.pem
 ```
+
+# Real comparison
+1. compared token uid with one from secure storage
+2. check if timeclock tempering e.g. lastonline should be small but not large than expiryDate
+3. check if token status is labelled Active
