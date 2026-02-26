@@ -1,6 +1,5 @@
 import { adminAuth, adminDb } from "@/firebase/admin.firebase";
 import { generateToken } from "@/logic/token.logic";
-import { FirebaseError } from "firebase/app";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -12,17 +11,14 @@ export async function POST(request: Request) {
     }
 
     // 0. Verify is email is verified
-    try {
-      const isVerified = await adminAuth.getUser(shopId);
+    const user = await adminAuth.getUser(shopId);
 
-      if (!isVerified.emailVerified){
-        throw new Error("EMAIL_NOT_VERIFIED")
-      }
-    } catch (authError) {
-      if (authError instanceof FirebaseError) {
-        if (authError.code === 'auth/user-not-found') throw new Error("USER_NOT_FOUND");
-        throw authError; // Re-throw if it's a verification error
-      }
+    if (!user) {
+      throw new Error("SHOP_NOT_FOUND");
+    }
+
+    if (!user.emailVerified) {
+      throw new Error("EMAIL_NOT_VERIFIED");
     }
 
     const shopRef = adminDb.collection("shops").doc(shopId);
