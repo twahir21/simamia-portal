@@ -5,7 +5,7 @@ export const registerSchema = z.object({
 
     phoneNumber: z
         .string("Phone Number is not valid Tanzania Number")
-        .regex(/^(\+255|0)[67]\d{8}$/)
+        .regex(/^(\+255|0|255)[67]\d{8}$/)
         .transform(val => val.replace(/\s+/g, "")), // removing spaces
 
     email: z
