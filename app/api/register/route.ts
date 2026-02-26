@@ -34,13 +34,8 @@ export async function POST(request: Request) {
       }, { status: 200 });
 
     } catch (authError) {
-      // If error code is NOT 'auth/user-not-found', something else went wrong
-      if (authError instanceof FirebaseError) {
-        if (authError.code !== 'auth/user-not-found') {
-          throw authError; 
-        }
-      }
       // If it IS 'auth/user-not-found', we simply proceed to registration below
+      console.error(authError)
     }
 
     // 2. Create the user in Firebase Auth (Client SDK used here)
