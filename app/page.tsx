@@ -12,6 +12,7 @@ import Features from "@/ui/Features";
 import FAQ from "@/ui/faq";
 import { Righteous } from "next/font/google";
 import WhatsAppButton from "@/ui/whatsapp";
+import { APK_LINK } from "@/const/links.const";
 
 const zain = Righteous({
   weight: "400",
@@ -83,11 +84,11 @@ export default function Hero() {
             transition={{ delay: 0.3, duration: 0.5 }}
           >
             <Link
-              href="#download"
+              href={`${APK_LINK}`}
               className="group relative flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white px-8 py-4 rounded-2xl text-lg font-bold transition-all shadow-lg hover:shadow-sky-200 active:scale-95"
             >
               <Download size={20} className="group-hover:bounce" />
-              Sajili Duka Lako
+              Download APK
             </Link>
 
             <Link
@@ -144,7 +145,7 @@ export default function Hero() {
     {/* Features */}
     <Features />
     
-    <section className="w-full py-20 bg-slate-900 text-white">
+    <section className="w-full py-20 bg-slate-900 text-white" id="apk">
       <div className="max-w-6xl mx-auto px-4 text-center rounded-3xl p-8 bg-white/10 backdrop-blur-lg border border-white/20">
         <div className="relative inline-block mb-6">
           {/* Subtle "glow" or "aura" behind the text */}
@@ -173,7 +174,7 @@ export default function Hero() {
 
           {/* APK Download */}
           <a
-            href="/apk/app-release.apk"
+            href={`${APK_LINK}`}
             className="flex items-center gap-3 px-8 py-3 bg-white text-indigo-600 font-bold rounded-2xl shadow-lg hover:scale-105 transition-transform duration-200 group"
           >
             {/* Android Icon */}
@@ -190,25 +191,31 @@ export default function Hero() {
           {/* Play Store Coming Soon */}
           <button
             disabled
-            className="flex items-center gap-3 px-8 py-3 bg-black text-white border border-white/20 rounded-2xl opacity-70 cursor-not-allowed group"
+            className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-gray-900 to-black border border-white/10 opacity-80 cursor-not-allowed shadow-md"
           >
-            {/* Play Store Icon */}
-            <svg 
-              viewBox="0 0 24 24" 
-              className="w-6 h-6" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path fill="#4DB6AC" d="M3,20.5V3.5C3,2.9 3.4,2.4 4,2.1L12.5,12L4,21.9C3.4,21.6 3,21.1 3,20.5Z" />
-              <path fill="#DCE775" d="M16.4,15.1L4,21.9C4.3,22 4.6,22 5,21.8L16.4,15.1Z" />
-              <path fill="#FF8A65" d="M21,12.5L16.4,15.1L12.5,12L16.4,8.9L21,11.5C21.6,11.8 21.6,12.2 21,12.5Z" />
-              <path fill="#F06292" d="M16.4,8.9L5,2.2C4.6,2 4.3,2 4,2.1L16.4,8.9Z" />
-            </svg>
-            <div className="flex flex-col items-start leading-none">
-              <span className="text-[10px] uppercase tracking-tighter opacity-60">Coming soon on</span>
-              <span className="text-sm font-bold">Google Play</span>
+            {/* Official-style Play Icon */}
+            <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-white">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512"
+                className="w-6 h-6"
+              >
+                <path fill="#34A853" d="M325.3 234.3L104.6 13.7c-8.4-8.4-22.1-8.4-30.5 0-2.3 2.3-4 5.2-4.9 8.3l256.1 256.1z"/>
+                <path fill="#4285F4" d="M69.2 21.9C68.4 24.9 68 28 68 31.2v449.6c0 3.2.4 6.3 1.2 9.3L325.3 277.7 69.2 21.9z"/>
+                <path fill="#FBBC04" d="M403.5 256c0-7.7-4-14.9-10.6-19l-67.6-41.7-79.2 79.2 79.2 79.2 67.6-41.7c6.6-4.1 10.6-11.3 10.6-19z"/>
+                <path fill="#EA4335" d="M325.3 277.7L69.2 490.1c.9 3.1 2.6 6 4.9 8.3 8.4 8.4 22.1 8.4 30.5 0l220.7-220.7z"/>
+              </svg>
+            </div>
+
+            <div className="flex flex-col leading-tight text-left">
+              <span className="text-[10px] uppercase tracking-wide text-gray-400">
+                Coming soon on
+              </span>
+              <span className="text-sm font-semibold text-white">
+                Google Play
+              </span>
             </div>
           </button>
-
         </div>
       </div>
     </section>
