@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { Download, Smartphone, ArrowLeft } from 'lucide-react';
+import { Download, Smartphone } from 'lucide-react';
 import { APK_LINK } from '@/const/links.const';
 import Image from 'next/image';
 

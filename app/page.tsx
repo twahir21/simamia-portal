@@ -191,7 +191,7 @@ export default function Hero() {
           {/* Play Store Coming Soon */}
           <button
             disabled
-            className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-gray-900 to-black border border-white/10 opacity-80 cursor-not-allowed shadow-md"
+            className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-linear-to-r from-gray-900 to-black border border-white/10 opacity-80 cursor-not-allowed shadow-md"
           >
             {/* Official-style Play Icon */}
             <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-white">
