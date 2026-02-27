@@ -29,4 +29,4 @@ export async function POST(request: Request) {
       message: "An unexpected error occurred during decoding token."
     }, { status: 500 });
   }
-} 
+}
