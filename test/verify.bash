@@ -1,0 +1,5 @@
+curl -X POST https://simamia.co.tz/api/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJhUkhLWVRrbzlYYjZJU1RWV3Rmc2RjT0s3SDgzIiwibGFzdE9ubGluZSI6MTc3MjEyNzM0NDAwNSwiZXhwIjoxNzc0NTEwODM3LCJzdGF0dXMiOiJBY3RpdmUiLCJpYXQiOjE3NzIxMjczNDR9.OYZF4ymyMywnK-0XNmdcQhFDeBvn9igfVq2M95SKQDtHVvbl1tStRuXAGDSw_MEA8eVwVH3fVLKTH5_QHDwlMhhJzQTbRKavX9Ung_54T2WVqr3zAVWHjxRTfL4xdZn2vuAz7t9RrHDsk81C_eguiyTRKm8fPz1Xg6aN1YJh9ksHXITkMI9SQ4G5jF9xJ8rbWhBwUoPRxeHuf7QeN1AHQLrcAWgMALT4Ry4ko0YNMu63EgfMo9tESZHiZmCinvjLjWY4ykvtCg4F8hIwn8833-AsN85ts59bLUQ3Vyv7gdSccaQBhBB5q0XrFMgoc1mMXiZYXDOHdrW4lVdalGPQsA"
+  }'
