@@ -41,8 +41,8 @@ export const Footer = () => {
             <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-900">Stay Connected</h4>
             <div className="mt-4 text-sm text-gray-600">
               Contact us at: <br />
-              <a href="mailto:support@simamia.com" className="font-bold hover:text-blue-600 transition-colors">
-                support@simamia.com
+              <a href="tel:+255674291587" className="font-bold hover:text-blue-600 transition-colors">
+                +255 67 429 1587
               </a>
             </div>
           </div>

@@ -28,10 +28,10 @@ export const TopBar = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+          <Link href="/" className="transition-colors hover:text-sky-600">Home</Link>
           <Link href="/private" className="transition-colors hover:text-sky-600">Dashboard</Link>
-          <Link href="#" className="transition-colors hover:text-sky-600">Debts</Link>
-          <Link href="#" className="transition-colors hover:text-sky-600">Expenses</Link>
-          <Link href="#" className="transition-colors hover:text-sky-600">Sales</Link>
+          <Link href="/help-center" className="transition-colors hover:text-sky-600">Help Center</Link>
+          {/* <Link href="#" className="transition-colors hover:text-sky-600">Sales</Link> */}
         </nav>
 
         {/* Action Buttons */}
