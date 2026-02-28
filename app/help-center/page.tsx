@@ -68,9 +68,6 @@ const HelpCenter = () => {
               allowFullScreen
             ></iframe>
             
-            <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-tighter animate-pulse">
-              Watch: Master Simamia in 5 Min
-            </div>
           </div>
           <div className="p-6 flex flex-col md:flex-row justify-between items-center bg-white">
             <div>
