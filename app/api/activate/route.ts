@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const expiryTimestamp = shopData?.endsAt?.seconds;
 
     // 2. Perform the update
-    await shopRef.update({ status: "Active"});
+    await shopRef.update({ status: "Active", verified: "Verified" });
 
     // 3. Generate Token
     // Ensure generateToken handles the private key signing internally
