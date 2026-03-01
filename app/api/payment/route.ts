@@ -78,7 +78,9 @@ export async function POST(request: Request) {
         lastPaymentId: transactionId
       });
 
-      const expiryTimestamp = shopDoc.data()?.endsAt?.seconds;
+      // FIX: Convert your local newExpiryDate to a Unix timestamp (seconds)
+      // don't fetch from the firestore , it will be old data
+      const expiryTimestamp = Math.floor(newExpiryDate.getTime() / 1000);
 
       const token = generateToken(shopId, expiryTimestamp, "Active");
 
