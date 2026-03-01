@@ -13,4 +13,4 @@ this link is marked shared and to everyone but opens google drive preview page
 file id here is 1A2B3C4D5E6F7G8H9I0J
 */
 
-export const APK_LINK = "/"
+export const APK_LINK = "https://drive.google.com/uc?export=download&id=1MgURhS5WctHKvfXOK0ksaW6UZuFVftBr"
