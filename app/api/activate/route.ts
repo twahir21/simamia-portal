@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { shopId } = await request.json() as { shopId: string };
+    const { shopId, appVersion } = await request.json() as { shopId: string; appVersion?: string; };
 
     if (!shopId) {
       return NextResponse.json({ success: false, message: "Missing shopId" }, { status: 400 });
@@ -34,7 +34,11 @@ export async function POST(request: Request) {
     const expiryTimestamp = shopData?.endsAt?.seconds;
 
     // 2. Perform the update
-    await shopRef.update({ status: "Active", verified: "Verified" });
+    await shopRef.update({ 
+      status: "Active", 
+      verified: "Verified",
+      appVersion
+    });
 
     // 3. Generate Token
     // Ensure generateToken handles the private key signing internally
