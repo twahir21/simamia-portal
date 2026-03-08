@@ -12,5 +12,6 @@ export const registerSchema = z.object({
         .preprocess( // remove space before validation
             (val) => typeof val === 'string' ? val.trim() : val,
             z.email("Invalid Email address").toLowerCase()
-        )
+        ),
+    deviceId: z.string().min(2, "Device ID cannot be empty").max(200).trim()
 });

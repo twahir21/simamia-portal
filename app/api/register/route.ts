@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    const { shopName, phoneNumber, email } = validation.data;
+    const { shopName, phoneNumber, email, deviceId } = validation.data;
 
     // 1. Check if email already exists
     try {
@@ -48,6 +48,7 @@ export async function POST(request: Request) {
         email,
         status: "Active" as UserStatus,
         verified: "Pending" as UserVerification,
+        deviceId,
         endsAt: new Date(new Date().setMonth(new Date().getMonth() + 1)),
         createdAt: FieldValue.serverTimestamp(), 
     });
