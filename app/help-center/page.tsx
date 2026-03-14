@@ -62,7 +62,7 @@ const HelpCenter = () => {
             {/* Replace with your actual Simamia Training Video URL */}
             <iframe 
               className="w-full h-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?controls=1" 
+              src="https://www.youtube.com/embed/dQw4w9WigXcQ?controls=1" 
               title="Master Simamia in 5 Minutes"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
