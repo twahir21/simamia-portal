@@ -5,6 +5,7 @@ CREATE TYPE "public"."sale_payment_type" AS ENUM('cash', 'digital', 'mixed', 'de
 CREATE TYPE "public"."sale_status" AS ENUM('paid', 'partial', 'unpaid');--> statement-breakpoint
 CREATE TABLE "categories" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"color" varchar(50) NOT NULL,
 	"sync_status" integer DEFAULT 0,
@@ -13,6 +14,7 @@ CREATE TABLE "categories" (
 --> statement-breakpoint
 CREATE TABLE "customers" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"phone" varchar(255) NOT NULL,
 	"email" varchar(255),
@@ -25,6 +27,7 @@ CREATE TABLE "customers" (
 --> statement-breakpoint
 CREATE TABLE "debts" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"customer_id" integer NOT NULL,
 	"amount_due" real NOT NULL,
 	"amount_paid" real DEFAULT 0,
@@ -38,6 +41,7 @@ CREATE TABLE "debts" (
 --> statement-breakpoint
 CREATE TABLE "expenses" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"title" varchar(255) DEFAULT 'Daily use',
 	"category" varchar(255) DEFAULT 'Personal',
 	"total_amount" real NOT NULL,
@@ -48,6 +52,7 @@ CREATE TABLE "expenses" (
 --> statement-breakpoint
 CREATE TABLE "expenses_items" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"expense_id" integer NOT NULL,
 	"stock_id" integer,
 	"product_name" varchar(255) NOT NULL,
@@ -58,8 +63,17 @@ CREATE TABLE "expenses_items" (
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
+CREATE TABLE "order_counter" (
+	"date" text PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
+	"counter" integer,
+	"sync_status" integer DEFAULT 0,
+	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE "orders" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"phone" varchar(50) NOT NULL,
 	"code" varchar(50) NOT NULL,
 	"total_amount" real NOT NULL,
@@ -73,6 +87,7 @@ CREATE TABLE "orders" (
 --> statement-breakpoint
 CREATE TABLE "payments" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"debt_id" integer NOT NULL,
 	"amount" real NOT NULL,
 	"payment_date" timestamp DEFAULT now(),
@@ -84,6 +99,7 @@ CREATE TABLE "payments" (
 --> statement-breakpoint
 CREATE TABLE "requests" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"request_count" integer DEFAULT 1,
 	"first_asked_at" text NOT NULL,
@@ -93,6 +109,7 @@ CREATE TABLE "requests" (
 --> statement-breakpoint
 CREATE TABLE "sale_items" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"sale_id" integer NOT NULL,
 	"stock_id" integer,
 	"product_name" varchar(255) NOT NULL,
@@ -105,6 +122,7 @@ CREATE TABLE "sale_items" (
 --> statement-breakpoint
 CREATE TABLE "sales" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"sale_number" varchar(100) NOT NULL,
 	"total_amount" real NOT NULL,
 	"paid_amount" real NOT NULL,
@@ -120,6 +138,7 @@ CREATE TABLE "sales" (
 --> statement-breakpoint
 CREATE TABLE "stock" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"product_name" varchar(255) NOT NULL,
 	"category" varchar(255),
 	"unit" varchar(50),
@@ -144,6 +163,7 @@ CREATE TABLE "stock" (
 --> statement-breakpoint
 CREATE TABLE "supplier_products" (
 	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
 	"supplier_id" integer NOT NULL,
 	"stock_id" integer NOT NULL,
 	"qty" integer DEFAULT 1,
@@ -151,8 +171,16 @@ CREATE TABLE "supplier_products" (
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-ALTER TABLE "suppliers" ALTER COLUMN "id" SET DATA TYPE serial;--> statement-breakpoint
-ALTER TABLE "suppliers" ALTER COLUMN "id" DROP IDENTITY;--> statement-breakpoint
+CREATE TABLE "suppliers" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" varchar(255) NOT NULL,
+	"name" varchar(255) NOT NULL,
+	"phone" varchar(255),
+	"syncStatus" integer DEFAULT 0,
+	"updatedAt" timestamp DEFAULT now(),
+	CONSTRAINT "suppliers_name_unique" UNIQUE("name")
+);
+--> statement-breakpoint
 ALTER TABLE "debts" ADD CONSTRAINT "debts_customer_id_customers_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."customers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "expenses_items" ADD CONSTRAINT "expenses_items_expense_id_expenses_id_fk" FOREIGN KEY ("expense_id") REFERENCES "public"."expenses"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_debt_id_debts_id_fk" FOREIGN KEY ("debt_id") REFERENCES "public"."debts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

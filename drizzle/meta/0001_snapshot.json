@@ -1,6 +1,6 @@
 {
-  "id": "fc07f6aa-b501-4272-8ef5-c63f6abd019c",
-  "prevId": "274f80fd-55bd-463f-8745-e352c0bc1c62",
+  "id": "0f5dc1bb-9a47-4237-a8dc-326c430c0d3b",
+  "prevId": "35d9075e-6938-4604-8356-c1bccf5f2683",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -10,8 +10,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "categories_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "name": {
@@ -55,8 +72,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "customers_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "name": {
@@ -127,8 +161,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "debts_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "customer_id": {
@@ -265,8 +316,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "expenses_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "title": {
@@ -325,8 +393,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "expenses_items_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "expense_id": {
@@ -403,14 +488,76 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.order_counter": {
+      "name": "order_counter",
+      "schema": "",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "counter": {
+          "name": "counter",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sync_status": {
+          "name": "sync_status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.orders": {
       "name": "orders",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "orders_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "phone": {
@@ -489,8 +636,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "payments_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "debt_id": {
@@ -583,8 +747,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "requests_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "name": {
@@ -635,8 +816,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "sale_items_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "sale_id": {
@@ -719,8 +917,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "sales_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "sale_number": {
@@ -811,8 +1026,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "stock_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "product_name": {
@@ -958,8 +1190,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "supplier_products_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "supplier_id": {
@@ -1037,8 +1286,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "suppliers_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "shop_id": {
+          "name": "shop_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
           "notNull": true
         },
         "name": {
