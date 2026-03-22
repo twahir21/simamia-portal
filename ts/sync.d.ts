@@ -1,0 +1,1 @@
+declare type Payload = Record<string, Record<string, unknown>[]>;

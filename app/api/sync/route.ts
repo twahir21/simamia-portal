@@ -3,11 +3,9 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     // 1. Parse the incoming payload from your Expo app
-    const payload = await request.json();
+    const payload: Payload = await request.json();
 
     const encodedShopId = request.headers.get('x-shop-id');
-
-    console.log(encodedShopId);
 
     if (!encodedShopId || encodedShopId.length === 0) {
         return NextResponse.json({
