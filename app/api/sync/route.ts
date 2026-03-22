@@ -1,3 +1,8 @@
+import { db } from '@/configs/db.config';
+import { stock, requests, categories, customers, debts, payments,
+         expenses, expensesItems, orders, orderCounter,
+         sales, saleItems, suppliers, supplierProducts } from '@/db/schema';
+import { PgTable } from 'drizzle-orm/pg-core';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -27,7 +32,47 @@ export async function POST(request: Request) {
 
     // 3. In a real app, you'd save to your server DB here.
     // For now, we just tell Expo "All good!"
-    
+
+
+    // extract table name and map throw them 
+    const tableMap: Record<tableName, PgTable> = {
+      stock,
+      requests,
+      categories,
+      customers,
+      debts,
+      payments,
+      expenses,
+      expenses_items: expensesItems,
+      orders,
+      order_counter: orderCounter,
+      sales,
+      sale_items: saleItems,
+      suppliers,
+      supplier_products: supplierProducts,
+    };
+
+for (const [tableName, rows] of Object.entries(payload)) {
+  const table = tableMap[tableName as keyof typeof tableMap];
+  if (!table || !Array.isArray(rows)) continue;
+
+  // 1. Prepare data by adding shopId to every row
+  const enrichedRows = rows.map((row) => ({
+    ...row,
+    shopId: shopId, // Inject the decoded shopId here
+  }));
+
+  // 2. Perform a Bulk Upsert (Insert or Update on Conflict)
+  try {
+    await db
+      .insert(table)
+      .values(enrichedRows)
+  } catch (err) {
+    console.error(`Error syncing table ${tableName}:`, err);
+  }
+}
+
+
     return NextResponse.json({ 
       success: true, 
       message: "Data received successfully" 
