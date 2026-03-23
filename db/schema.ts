@@ -1,11 +1,9 @@
 import { 
   integer, 
   pgTable, 
-  timestamp, 
   varchar, 
   text, 
   real, 
-  serial, 
   index,
   pgEnum
 } from "drizzle-orm/pg-core";
@@ -37,9 +35,9 @@ export const stock = pgTable("stock", {
   buyingPrice: real("buying_price").notNull(),
   totalCost: real("total_cost"),
   minStock: real("min_stock").notNull(),
-  lastUpdate: timestamp("last_update").defaultNow(),
+  lastUpdate: text("last_update"),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 });
 
 export const requests = pgTable("requests", {
@@ -49,7 +47,7 @@ export const requests = pgTable("requests", {
   requestCount: integer("request_count").default(1),
   firstAskedAt: text("first_asked_at").notNull(),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 });
 
 export const categories = pgTable("categories", {
@@ -58,7 +56,7 @@ export const categories = pgTable("categories", {
   name: varchar("name", { length: 255 }).notNull(),
   color: varchar("color", { length: 50 }).notNull(),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 });
 
 export const customers = pgTable("customers", {
@@ -68,8 +66,8 @@ export const customers = pgTable("customers", {
   phone: varchar("phone", { length: 255 }).notNull().unique(),
   email: varchar("email", { length: 255 }),
   address: text("address"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
   syncStatus: integer("sync_status").default(0)
 });
 
@@ -82,8 +80,8 @@ export const debts = pgTable("debts", {
   dueDate: text("due_date").notNull(),
   status: debtStatusEnum("status").notNull(),
   notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
   syncStatus: integer("sync_status").default(0)
 }, (table) => ({
   customerIdx: index("idx_debts_customer").on(table.customerId),
@@ -96,11 +94,11 @@ export const payments = pgTable("payments", {
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   debtId: integer("debt_id").references(() => debts.id, { onDelete: 'cascade' }).notNull(),
   amount: real("amount").notNull(),
-  paymentDate: timestamp("payment_date").defaultNow(),
+  paymentDate: text("payment_date"),
   paymentMethod: varchar("payment_method", { length: 100 }),
   notes: text("notes"),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 }, (table) => ({
   debtIdx: index("idx_payments_debt").on(table.debtId),
 }));
@@ -111,9 +109,9 @@ export const expenses = pgTable("expenses", {
   title: varchar("title", { length: 255 }).default("Daily use"),
   category: varchar("category", { length: 255 }).default("Personal"),
   totalAmount: real("total_amount").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: text("created_at"),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 });
 
 export const expensesItems = pgTable("expenses_items", {
@@ -126,7 +124,7 @@ export const expensesItems = pgTable("expenses_items", {
   price: real("price").notNull(),
   isQuickExpense: integer("is_quick_expense").default(0),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 });
 
 export const orders = pgTable("orders", {
@@ -136,9 +134,9 @@ export const orders = pgTable("orders", {
   code: varchar("code", { length: 50 }).notNull(),
   totalAmount: real("total_amount").notNull(),
   orderStr: text("order_str").notNull(),
-  time: timestamp("time").defaultNow(),
+  time: text("time"),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedAt: text("updated_at"),
   delivery: deliveryStatusEnum("delivery").default('not-taken').notNull(),
   payment: paymentStatusEnum("payment").default('pending').notNull()
 });
@@ -149,7 +147,7 @@ export const orderCounter = pgTable("order_counter", {
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   counter: integer("counter"),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 });
 
 export const sales = pgTable("sales", {
@@ -162,9 +160,9 @@ export const sales = pgTable("sales", {
   paymentType: salePaymentTypeEnum("payment_type").notNull(),
   status: saleStatusEnum("status").notNull(),
   customerName: varchar("customer_name", { length: 255 }),
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: text("created_at"),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 });
 
 export const saleItems = pgTable("sale_items", {
@@ -177,7 +175,7 @@ export const saleItems = pgTable("sale_items", {
   price: real("price").notNull(),
   isQuickSale: integer("is_quick_sale").default(0),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 });
 
 
@@ -188,7 +186,7 @@ export const suppliers = pgTable("suppliers", {
   name: varchar({ length: 255 }).notNull().unique(),
   phone: varchar({ length: 255 }),
   syncStatus: integer().default(0),
-  updatedAt: timestamp().defaultNow()
+  updatedAt: text()
 });
 
 export const supplierProducts = pgTable("supplier_products", {
@@ -198,5 +196,5 @@ export const supplierProducts = pgTable("supplier_products", {
   stockId: integer("stock_id").references(() => stock.id, { onDelete: 'cascade' }).notNull(),
   qty: integer("qty").default(1),
   syncStatus: integer("sync_status").default(0),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: text("updated_at")
 });

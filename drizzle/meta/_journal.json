@@ -15,6 +15,13 @@
       "when": 1774176766698,
       "tag": "0001_empty_trauma",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774229606144,
+      "tag": "0002_outstanding_star_brand",
+      "breakpoints": true
     }
   ]
 }
