@@ -1,0 +1,1 @@
+ALTER TABLE "order_counter" ADD COLUMN "id" integer DEFAULT 1;

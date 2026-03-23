@@ -2,87 +2,112 @@ import { db } from '@/configs/db.config';
 import { stock, requests, categories, customers, debts, payments,
          expenses, expensesItems, orders, orderCounter,
          sales, saleItems, suppliers, supplierProducts } from '@/db/schema';
-import { PgTable } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+
+const tableMap = {
+  stock,
+  requests,
+  categories,
+  customers,
+  debts,
+  payments,
+  expenses,
+  expenses_items: expensesItems,
+  orders,
+  order_counter: orderCounter,
+  sales,
+  sale_items: saleItems,
+  suppliers,
+  supplier_products: supplierProducts,
+} as const;
+
+
+type TableMap = {
+  stock: typeof stock.$inferInsert;
+  requests: typeof requests.$inferInsert;
+  categories: typeof categories.$inferInsert;
+  customers: typeof customers.$inferInsert;
+  debts: typeof debts.$inferInsert;
+  payments: typeof payments.$inferInsert;
+  expenses: typeof expenses.$inferInsert;
+  expenses_items: typeof expensesItems.$inferInsert;
+  orders: typeof orders.$inferInsert;
+  order_counter: typeof orderCounter.$inferInsert;
+  sales: typeof sales.$inferInsert;
+  sale_items: typeof saleItems.$inferInsert;
+  suppliers: typeof suppliers.$inferInsert;
+  supplier_products: typeof supplierProducts.$inferInsert;
+};
+
+type Payload = {
+  [K in keyof TableMap]?: TableMap[K][];
+};
+
 
 export async function POST(request: Request) {
   try {
-    // 1. Parse the incoming payload from your Expo app
     const payload: Payload = await request.json();
 
-    const encodedShopId = request.headers.get('x-shop-id');
+    const encodedShopId = request.headers.get("x-shop-id");
 
-    if (!encodedShopId || encodedShopId.length === 0) {
-        return NextResponse.json({
-            success: false,
-            message: "Shop ID is missing"
-        }, { status: 400 });
+    if (!encodedShopId) {
+      return NextResponse.json(
+        { success: false, message: "Shop ID is missing" },
+        { status: 400 }
+      );
     }
 
-    const shopId = encodedShopId.replace(/[a-zA-Z]/g, function(char) {
-        const base = char <= "Z" ? 65 : 97;
-        return String.fromCharCode(((char.charCodeAt(0) - base + 13) % 26) + base);
+    const shopId = encodedShopId.replace(/[a-zA-Z]/g, (char) => {
+      const base = char <= "Z" ? 65 : 97;
+      return String.fromCharCode(
+        ((char.charCodeAt(0) - base + 13) % 26) + base
+      );
     });
 
-    // 2. Log it to your terminal (this is where you see your data!)
-    console.log('--- 📥 Incoming Sync Payload ---');
-    console.log("ShopID: ", shopId)
-    console.dir(payload, { depth: null }); 
-    console.log('--------------------------------');
+    for (const tableName of Object.keys(payload) as (keyof Payload)[]) {
+      const rows = payload[tableName];
+      const table = tableMap[tableName];
 
-    // 3. In a real app, you'd save to your server DB here.
-    // For now, we just tell Expo "All good!"
+      if (!table || !rows || rows.length === 0) continue;
 
-
-    // extract table name and map throw them 
-    const tableMap: Record<tableName, PgTable> = {
-      stock,
-      requests,
-      categories,
-      customers,
-      debts,
-      payments,
-      expenses,
-      expenses_items: expensesItems,
-      orders,
-      order_counter: orderCounter,
-      sales,
-      sale_items: saleItems,
-      suppliers,
-      supplier_products: supplierProducts,
-    };
-
-    for (const [tableName, rows] of Object.entries(payload)) {
-      const table = tableMap[tableName as keyof typeof tableMap];
-      if (!table || !Array.isArray(rows)) continue;
-
-      // 1. Prepare data by adding shopId to every row
       const enrichedRows = rows.map((row) => ({
         ...row,
-        shopId: shopId, // Inject the decoded shopId here
+        shopId,
       }));
 
-      // 2. Perform a Bulk Upsert (Insert or Update on Conflict)
+      // ✅ Typed updateSet
+      const updateSet = Object.fromEntries(
+        Object.keys(enrichedRows[0]).map((key) => [
+          key,
+          sql.raw(`excluded."${key}"`),
+        ])
+      ) as Partial<typeof enrichedRows[number]>;
+
       try {
         await db
           .insert(table)
           .values(enrichedRows)
+          .onConflictDoUpdate({
+            target: [table.id, table.shopId],
+            set: updateSet,
+          });
       } catch (err) {
-        console.error(`Error syncing table ${tableName}:`, err);
+        console.error(`Error syncing ${String(tableName)}:`, err);
       }
     }
 
-
-    return NextResponse.json({ 
-      success: true, 
-      message: "Data received successfully" 
-    }, { status: 200 });
+    return NextResponse.json({
+      success: true,
+      message: "Data synced successfully",
+    });
 
   } catch (error) {
     console.error("Sync API Error:", error);
-    return NextResponse.json({ 
-      success: false, 
-      error: "Invalid payload" 
-    }, { status: 400 });
+
+    return NextResponse.json(
+      { success: false, error: "Invalid payload" },
+      { status: 400 }
+    );
   }
 }
