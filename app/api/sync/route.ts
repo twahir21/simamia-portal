@@ -52,25 +52,25 @@ export async function POST(request: Request) {
       supplier_products: supplierProducts,
     };
 
-for (const [tableName, rows] of Object.entries(payload)) {
-  const table = tableMap[tableName as keyof typeof tableMap];
-  if (!table || !Array.isArray(rows)) continue;
+    for (const [tableName, rows] of Object.entries(payload)) {
+      const table = tableMap[tableName as keyof typeof tableMap];
+      if (!table || !Array.isArray(rows)) continue;
 
-  // 1. Prepare data by adding shopId to every row
-  const enrichedRows = rows.map((row) => ({
-    ...row,
-    shopId: shopId, // Inject the decoded shopId here
-  }));
+      // 1. Prepare data by adding shopId to every row
+      const enrichedRows = rows.map((row) => ({
+        ...row,
+        shopId: shopId, // Inject the decoded shopId here
+      }));
 
-  // 2. Perform a Bulk Upsert (Insert or Update on Conflict)
-  try {
-    await db
-      .insert(table)
-      .values(enrichedRows)
-  } catch (err) {
-    console.error(`Error syncing table ${tableName}:`, err);
-  }
-}
+      // 2. Perform a Bulk Upsert (Insert or Update on Conflict)
+      try {
+        await db
+          .insert(table)
+          .values(enrichedRows)
+      } catch (err) {
+        console.error(`Error syncing table ${tableName}:`, err);
+      }
+    }
 
 
     return NextResponse.json({ 

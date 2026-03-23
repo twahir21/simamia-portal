@@ -18,7 +18,7 @@ export const debtStatusEnum = pgEnum("debt_status", ['overdue', 'upcoming', 'set
 // --- Tables ---
 
 export const stock = pgTable("stock", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   productName: varchar("product_name", { length: 255 }).notNull().unique(),
   category: varchar("category", { length: 255 }),
@@ -41,7 +41,7 @@ export const stock = pgTable("stock", {
 });
 
 export const requests = pgTable("requests", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   requestCount: integer("request_count").default(1),
@@ -51,7 +51,7 @@ export const requests = pgTable("requests", {
 });
 
 export const categories = pgTable("categories", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   color: varchar("color", { length: 50 }).notNull(),
@@ -60,7 +60,7 @@ export const categories = pgTable("categories", {
 });
 
 export const customers = pgTable("customers", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 255 }).notNull().unique(),
@@ -72,7 +72,7 @@ export const customers = pgTable("customers", {
 });
 
 export const debts = pgTable("debts", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   customerId: integer("customer_id").references(() => customers.id, { onDelete: 'cascade' }).notNull(),
   amountDue: real("amount_due").notNull(),
@@ -90,7 +90,7 @@ export const debts = pgTable("debts", {
 }));
 
 export const payments = pgTable("payments", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   debtId: integer("debt_id").references(() => debts.id, { onDelete: 'cascade' }).notNull(),
   amount: real("amount").notNull(),
@@ -104,7 +104,7 @@ export const payments = pgTable("payments", {
 }));
 
 export const expenses = pgTable("expenses", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   title: varchar("title", { length: 255 }).default("Daily use"),
   category: varchar("category", { length: 255 }).default("Personal"),
@@ -115,7 +115,7 @@ export const expenses = pgTable("expenses", {
 });
 
 export const expensesItems = pgTable("expenses_items", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   expenseId: integer("expense_id").references(() => expenses.id, { onDelete: 'cascade' }).notNull(),
   stockId: integer("stock_id"),
@@ -128,7 +128,7 @@ export const expensesItems = pgTable("expenses_items", {
 });
 
 export const orders = pgTable("orders", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 50 }).notNull(),
   code: varchar("code", { length: 50 }).notNull(),
@@ -151,7 +151,7 @@ export const orderCounter = pgTable("order_counter", {
 });
 
 export const sales = pgTable("sales", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   saleNumber: varchar("sale_number", { length: 100 }).notNull().unique(),
   totalAmount: real("total_amount").notNull(),
@@ -166,7 +166,7 @@ export const sales = pgTable("sales", {
 });
 
 export const saleItems = pgTable("sale_items", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   saleId: integer("sale_id").references(() => sales.id).notNull(),
   stockId: integer("stock_id"),
@@ -181,7 +181,7 @@ export const saleItems = pgTable("sale_items", {
 
 
 export const suppliers = pgTable("suppliers", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   name: varchar({ length: 255 }).notNull().unique(),
   phone: varchar({ length: 255 }),
@@ -190,7 +190,7 @@ export const suppliers = pgTable("suppliers", {
 });
 
 export const supplierProducts = pgTable("supplier_products", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer().primaryKey(),
   shopId: varchar("shop_id", { length: 255 }).notNull(),
   supplierId: integer("supplier_id").references(() => suppliers.id, { onDelete: 'cascade' }).notNull(),
   stockId: integer("stock_id").references(() => stock.id, { onDelete: 'cascade' }).notNull(),
