@@ -77,12 +77,12 @@ export async function POST(request: Request) {
       }));
 
       // ✅ Typed updateSet
-      const updateSet = Object.fromEntries(
-        Object.keys(enrichedRows[0]).map((key) => [
-          key,
-          sql.raw(`excluded."${key}"`),
-        ])
-      ) as Partial<typeof enrichedRows[number]>;
+      // const updateSet = Object.fromEntries(
+      //   Object.keys(enrichedRows[0]).map((key) => [
+      //     key,
+      //     sql.raw(`excluded."${key}"`),
+      //   ])
+      // ) as Partial<typeof enrichedRows[number]>;
 
       try {
         await db
@@ -90,7 +90,14 @@ export async function POST(request: Request) {
           .values(enrichedRows)
           .onConflictDoUpdate({
             target: [table.id, table.shopId],
-            set: updateSet,
+           set: Object.keys(enrichedRows).reduce((acc, key) => {
+
+          if (table[key]) {
+
+            acc[key] = sql.raw(`excluded.${table[key].name}`); 
+          }
+          return acc;
+        }, {}),
           });
       } catch (err) {
         console.error(`Error syncing ${String(tableName)}:`, err);
