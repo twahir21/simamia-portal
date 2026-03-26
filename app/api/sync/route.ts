@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     console.error("Sync API Error:", error);
 
     return NextResponse.json(
-      { success: false, error: "Invalid payload" },
+      { success: false, message: "Invalid payload" },
       { status: 400 }
     );
   }
