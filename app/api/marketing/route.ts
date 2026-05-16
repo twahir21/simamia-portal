@@ -5,6 +5,10 @@ export async function POST(req: Request) {
         const body = await req.json();
 
         console.log("Body received:", body);
+        console.dir(body, { depth: null });
+
+        console.log("..........json file ......");
+        console.log(JSON.stringify(body, null, 2));
 
         return NextResponse.json({
             success: true,

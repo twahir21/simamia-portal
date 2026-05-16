@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         status: "Active" as UserStatus,
         verified: "Pending" as UserVerification,
         deviceId,
-        endsAt: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+        endsAt: new Date(new Date().setDate(new Date().getDate() + 14)), // 14 days trial
         createdAt: FieldValue.serverTimestamp(), 
     });
     
