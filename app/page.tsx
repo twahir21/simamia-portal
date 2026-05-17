@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import AOS from "aos";
-import "aos/dist/aos.css";
 import { Download, PlayCircle, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import ProblemSolution from "@/ui/ProblemSoln";
@@ -59,7 +58,7 @@ export default function Hero() {
               <div className="flex text-yellow-500">
                 {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
               </div>
-              <span className="text-sm font-medium text-gray-600">5+ Shops Verified</span>
+              <span className="text-sm font-medium text-gray-600">5+ Maduka yaliyojisajili</span>
             </div>
 
             <h1 className={` ${zain.className} text-4xl md:text-6xl font-extrabold leading-tight text-gray-900 tracking-tight`}>
@@ -88,7 +87,7 @@ export default function Hero() {
               className="group relative flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white px-8 py-4 rounded-2xl text-lg font-bold transition-all shadow-lg hover:shadow-sky-200 active:scale-95"
             >
               <Download size={20} className="group-hover:bounce" />
-              Download APK
+              Pakua APK
             </Link>
 
             <Link
@@ -153,11 +152,11 @@ export default function Hero() {
           
           <h2 className="relative text-3xl md:text-5xl font-extrabold tracking-tight">
             <span className={`${zain.className} bg-clip-text text-transparent bg-linear-to-r from-white via-sky-100 to-white`}>
-              Start Managing Your Business 
+              Anza Kusimamia Biashara Yako
             </span>
             <br />
             <span className="relative">
-              <span className="text-sky-400">Smarter Today</span>
+              <span className="text-sky-400">Kiustadi zaidi Leo</span>
               {/* Decorative Brush/Underline Effect */}
               <svg className="absolute -bottom-2 left-0 w-full h-2 text-sky-500/50" viewBox="0 0 100 10" preserveAspectRatio="none">
                 <path d="M0 5 Q 25 0, 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
@@ -167,7 +166,7 @@ export default function Hero() {
         </div>
 
         <p className="text-lg opacity-90 mb-8">
-          Offline-ready. Fast. Built for real businesses in Africa.
+          Matumizi bila bando. Kwa haraka. Imetengeneza kwa ajili ya biashara za kweli za Afrika.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -185,7 +184,7 @@ export default function Hero() {
             >
               <path d="M17.523 15.3414C17.0609 15.3414 16.6903 14.9708 16.6903 14.5087C16.6903 14.0465 17.0609 13.6759 17.523 13.6759C17.9852 13.6759 18.3558 14.0465 18.3558 14.5087C18.3558 14.9708 17.9852 15.3414 17.523 15.3414ZM6.477 15.3414C6.01485 15.3414 5.64424 14.9708 5.64424 14.5087C5.64424 14.0465 6.01485 13.6759 6.477 13.6759C6.93915 13.6759 7.30976 14.0465 7.30976 14.5087C7.30976 14.9708 6.93915 15.3414 6.477 15.3414ZM17.8431 11.2335L19.9881 7.51811C20.1255 7.2798 20.0438 6.97491 19.8055 6.83751C19.5673 6.70012 19.2624 6.7818 19.125 7.02011L16.9427 10.8C15.4641 10.1227 13.7915 9.75 12 9.75C10.2085 9.75 8.53592 10.1227 7.05731 10.8L4.875 7.02011C4.7376 6.7818 4.43272 6.70012 4.1945 6.83751C3.95627 6.97491 3.8745 7.2798 4.0119 7.51811L6.15693 11.2335C2.61331 13.1539 0.20892 16.8228 0 21.1111H24C23.7911 16.8228 21.3867 13.1539 17.8431 11.2335Z" />
             </svg>
-            Download APK
+            Pakua APK
           </a>
 
           {/* Play Store Coming Soon */}
@@ -209,7 +208,7 @@ export default function Hero() {
 
             <div className="flex flex-col leading-tight text-left">
               <span className="text-[10px] uppercase tracking-wide text-gray-400">
-                Coming soon on
+                Hivi punde itapatikana
               </span>
               <span className="text-sm font-semibold text-white">
                 Google Play

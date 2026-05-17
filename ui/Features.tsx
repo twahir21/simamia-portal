@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import Image from 'next/image';
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -10,29 +10,33 @@ gsap.registerPlugin(ScrollTrigger);
 
 const features = [
   {
-    title: "Point of Sale",
-    description: "Scan, search, and save. The ultimate command center for rapid-fire retail.",
+    title: "Mfumo wa Mauzo",
+    description:
+      "Scan, tafuta bidhaa na hifadhi mauzo kwa haraka ndani ya sekunde chache.",
     image: "/sale.png",
-    tags: ["Scan", "Quick Sales", "Save Cart"]
+    tags: ["Scan", "Mauzo ya Haraka", "Hifadhi Cart"],
   },
   {
-    title: "Command Center",
-    description: "Your entire business at a glance. Manage customers, suppliers, and history.",
+    title: "Usimamizi wa Biashara",
+    description:
+      "Simamia wateja, wauzaji, matumizi na historia yote ya biashara sehemu moja.",
     image: "/pages.png",
-    tags: ["Reports", "CRM", "History"]
+    tags: ["Ripoti", "Wateja", "Historia"],
   },
   {
-    title: "Order Fulfillment",
-    description: "Track pending sales and manage deliveries with real-time status updates.",
+    title: "Usimamizi wa Oda",
+    description:
+      "Fuatilia oda, delivery na hali ya malipo kwa urahisi muda wowote.",
     image: "/orders.png",
-    tags: ["Delivery", "Processing", "Queued"]
+    tags: ["Delivery", "Processing", "Oda"],
   },
   {
-    title: "Inventory Intelligence",
-    description: "Real-time stock summaries with automated 'Low Stock' intelligence.",
+    title: "Usimamizi wa Stock",
+    description:
+      "Fuatilia bidhaa zilizobaki, stock inayopungua na thamani ya biashara papo hapo.",
     image: "/stocks.png",
-    tags: ["Low Stock", "Margins", "Automated"]
-  }
+    tags: ["Stock Chini", "Faida", "Ufuatiliaji"],
+  },
 ];
 
 export default function Features() {
