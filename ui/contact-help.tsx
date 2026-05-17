@@ -1,10 +1,9 @@
 import { PHONE_SUPPORT } from "@/const/links.const";
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, Mail, MessageCircle, Phone, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowDown, Mail, MessageCircle, Phone } from "lucide-react";
 import { useState } from "react";
 
 export default function ContactHelp () {
-    const [isLiveChatOpen, setIsLiveChatOpen] = useState(false);
     const [isHelpful, setIsHelpful] = useState<boolean | null>(null);
     return (
       <>
@@ -103,7 +102,12 @@ export default function ContactHelp () {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setIsLiveChatOpen(true)}
+                  onClick={() =>
+                    window.open(
+                      "https://wa.me/255674291587?text=Habari%20Simamia%20App,%20nahitaji%20msaada.",
+                      "_blank",
+                    )
+                  }
                   className="w-full bg-white text-purple-600 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2"
                 >
                   <MessageCircle className="w-5 h-5" />
@@ -121,7 +125,9 @@ export default function ContactHelp () {
             <h3 className="text-xl font-bold text-gray-900 mb-2">
               Je kituo cha Msaada kimekusaidia?
             </h3>
-            <p className="text-gray-600 mb-4">Maoni yako yatatusaidia sisi kukua.</p>
+            <p className="text-gray-600 mb-4">
+              Maoni yako yatatusaidia sisi kukua.
+            </p>
 
             <div className="flex items-center justify-center space-x-4">
               <motion.button
@@ -162,79 +168,6 @@ export default function ContactHelp () {
           </div>
         </section>
 
-        {/* Live Chat Modal */}
-        <AnimatePresence>
-          {isLiveChatOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-              onClick={() => setIsLiveChatOpen(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.9, y: 20 }}
-                className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    Live Chat Support
-                  </h3>
-                  <button
-                    onClick={() => setIsLiveChatOpen(false)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <p className="text-gray-600 mb-6">
-                  Please describe your issue and our support team will respond
-                  shortly.
-                </p>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Message
-                    </label>
-                    <textarea
-                      placeholder="How can we help you?"
-                      rows={4}
-                      className="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-sky-500 outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex space-x-3 mt-6">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex-1 bg-sky-600 text-white py-3 rounded-xl font-semibold hover:bg-sky-700 transition-colors"
-                  >
-                    Start Chat
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setIsLiveChatOpen(false)}
-                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
-                  >
-                    Cancel
-                  </motion.button>
-                </div>
-
-                <p className="text-xs text-gray-400 text-center mt-4">
-                  By starting a chat, you agree to our Terms of Service and
-                  Privacy Policy
-                </p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Back to Top Button */}
         <motion.button

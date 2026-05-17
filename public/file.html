@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Simamia App User Guide</title>
+    <!-- Importing Modern Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Page setup & variables */
+        @page {
+            size: A4;
+            margin: 18mm 15mm;
+            background-color: #f8fafc; /* slate-50 */
+            @bottom-right {
+                content: counter(page);
+                font-family: 'Inter', sans-serif;
+                font-size: 8.5pt;
+                color: #64748b; /* slate-500 */
+                font-weight: 600;
+            }
+            @bottom-left {
+                content: "Simamia App — Mwongozo wa Mtumiaji";
+                font-family: 'Inter', sans-serif;
+                font-size: 8.5pt;
+                color: #64748b;
+                font-weight: 500;
+            }
+        }
+        
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            color: #1e293b; /* slate-800 */
+            background-color: #f8fafc;
+            line-height: 1.6;
+            font-size: 9.5pt;
+        }
+
+        /* Cover Page Styling */
+        .cover-page {
+            margin: -18mm -15mm 25mm -15mm;
+            padding: 45mm 20mm 35mm 20mm;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); /* sky-600 to sky-700 */
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .cover-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 36pt;
+            font-weight: 800;
+            margin: 0 0 12px 0;
+            letter-spacing: -1px;
+        }
+
+        .cover-subtitle {
+            font-family: 'Inter', sans-serif;
+            font-size: 13pt;
+            font-weight: 400;
+            color: #e0f2fe; /* sky-100 */
+            margin: 0 0 45px 0;
+            letter-spacing: 0.2px;
+        }
+
+        .cover-badge {
+            display: inline-block;
+            background-color: #bae6fd; /* sky-200 */
+            color: #0369a1; /* sky-700 */
+            padding: 7px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Typography & Layout structure */
+        h1.section-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 17pt;
+            font-weight: 700;
+            color: #0369a1; /* sky-700 */
+            border-bottom: 2px solid #e2e8f0; /* slate-200 */
+            padding-bottom: 8px;
+            margin-top: 30px;
+            margin-bottom: 16px;
+            page-break-after: avoid;
+            letter-spacing: -0.3px;
+        }
+
+        h2.subsection-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12pt;
+            font-weight: 700;
+            color: #0f172a; /* slate-900 */
+            margin-top: 20px;
+            margin-bottom: 10px;
+            page-break-after: avoid;
+            border-left: 4px solid #0ea5e9; /* sky-500 */
+            padding-left: 10px;
+        }
+
+        p {
+            margin: 0 0 12px 0;
+            color: #334155; /* slate-700 */
+            text-align: justify;
+        }
+
+        strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        /* Main Flow Visual Pipeline */
+        .flow-container {
+            display: table;
+            width: 100%;
+            margin: 24px 0;
+            border-collapse: separate;
+            border-spacing: 12px 0;
+        }
+
+        .flow-step {
+            display: table-cell;
+            background-color: #ffffff;
+            border: 1px solid #bae6fd; /* sky-200 */
+            border-top: 4px solid #0ea5e9; /* sky-500 */
+            border-radius: 8px;
+            padding: 14px;
+            width: 25%;
+            vertical-align: top;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+        }
+
+        .flow-num {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 18pt;
+            font-weight: 800;
+            color: #0284c7;
+            margin-bottom: 6px;
+        }
+
+        .flow-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 9.5pt;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .flow-desc {
+            font-size: 8.5pt;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Layout Architecture Blocks */
+        .grid-table {
+            display: table;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .grid-row {
+            display: table-row;
+        }
+
+        .grid-cell {
+            display: table-cell;
+            width: 50%;
+            padding: 0 10px;
+            vertical-align: top;
+        }
+
+        .grid-cell:first-child {
+            padding-left: 0;
+        }
+
+        .grid-cell:last-child {
+            padding-right: 0;
+        }
+
+        /* Feature UI Cards */
+        .ui-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 18px;
+            page-break-inside: avoid;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.01);
+        }
+
+        .ui-card.primary-accent {
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .ui-card-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 11pt;
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 10px;
+            letter-spacing: -0.1px;
+        }
+
+        /* Styled Lists */
+        ul {
+            margin: 0 0 12px 0;
+            padding-left: 18px;
+        }
+
+        li {
+            margin-bottom: 6px;
+            color: #334155;
+        }
+
+        li::marker {
+            color: #38bdf8; /* sky-400 */
+        }
+
+        /* Micro-elements */
+
+        .tab-indicator {
+            display: inline-block;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 8pt;
+            font-weight: 600;
+            margin-right: 5px;
+            margin-bottom: 6px;
+            border: 1px solid #bae6fd;
+        }
+
+        /* Custom Information Boxes */
+        .alert-box {
+            background-color: #f0f9ff; /* sky-50 */
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 14px;
+            margin: 18px 0;
+            page-break-inside: avoid;
+        }
+
+        .alert-box-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 6px;
+            font-size: 10pt;
+        }
+
+        /* App Home Layout Diagram Box */
+        .home-wireframe {
+            background-color: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 18px;
+            margin: 18px 0;
+        }
+
+        .wireframe-header {
+            background-color: #f1f5f9;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            color: #475569;
+            font-size: 9pt;
+            margin-bottom: 14px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .wireframe-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 14px;
+        }
+
+        .wireframe-btn {
+            display: table-cell;
+            background-color: #e0f2fe;
+            border: 1px solid #bae6fd;
+            color: #0369a1;
+            padding: 14px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 9.5pt;
+            border-radius: 6px;
+            width: 33.33%;
+        }
+
+        .wireframe-space {
+            width: 12px;
+        }
+
+        .wireframe-space-block {
+            height: 45px; 
+            margin-bottom: 14px; 
+            background-color: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 6px; 
+            text-align: center; 
+            padding-top: 12px; 
+            font-size: 9pt; 
+            color: #94a3b8;
+        }
+
+        .wireframe-nav {
+            display: table;
+            width: 100%;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 12px;
+        }
+
+        .wireframe-nav-item {
+            display: table-cell;
+            text-align: center;
+            font-size: 9pt;
+            color: #64748b;
+            font-weight: 600;
+            width: 25%;
+        }
+
+        .wireframe-nav-item.active {
+            color: #0284c7;
+            font-weight: 700;
+        }
+
+        /* Analytics Report Sub-grid */
+        .report-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .report-tag {
+            display: inline-block;
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 8pt;
+            font-weight: 500;
+            margin-right: 5px;
+            margin-bottom: 6px;
+            color: #334155;
+        }
+
+        .page-break-before {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cover Page Section -->
+    <div class="cover-page">
+        <div class="cover-title">SIMAMIA APP</div>
+        <div class="cover-subtitle">Mwongozo Kamili wa Mafunzo na Uendeshaji wa Mfumo</div>
+        <div class="cover-badge">Mwongozo wa Mtumiaji &amp; Nyaraka za Mfumo</div>
+    </div>
+
+    <!-- Introduction and Core Flow -->
+    <h1 class="section-title">1. Mfumo wa Simamia na Utiririshaji Mkuu (Main Flow)</h1>
+    <p>
+        Simamia App ni mfumo thabiti na rahisi ulioundwa maalum kusaidia wafanyabiashara wadogo na wa kati (kama vile maduka ya reja reja na jumla) kusimamia mauzo, hesabu za stoku, madeni, na kupata ripoti za kina za faida na hasara kwa urahisi kabisa bila kuongeza mzigo wa kifikra.
+    </p>
+
+    <div class="alert-box">
+        <div class="alert-box-title">Utaratibu Mkuu wa Kazi (Hatua kwa Hatua)</div>
+        <p style="margin: 0; font-size: 9.5pt;">
+            Ili kuanza kutumia mfumo huu kwa mafanikio, mtumiaji anapaswa kufuata mtiririko mkuu wa hatua nne (4) kama unavyoonekana hapa chini:
+        </p>
+    </div>
+
+    <!-- Main Flow Table Pipeline -->
+    <div class="flow-container">
+        <div class="flow-step">
+            <div class="flow-num">01</div>
+            <div class="flow-text">Sajili Bidhaa</div>
+            <div class="flow-desc">Ingiza bidhaa mpya kwenye stoku ukiweka jina, idadi, bei ya kununulia na bei ya kuuzia.</div>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">02</div>
+            <div class="flow-text">Fanya Mauzo</div>
+            <div class="flow-desc">Chagua au kagua bidhaa kupitia sehemu za mauzo na uziingize kwenye toroli kwa kubofya mara moja.</div>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">03</div>
+            <div class="flow-text">Kagua Toroli</div>
+            <div class="flow-desc">(Si lazima) Fungua ukurasa wa toroli (Cart) ili kuhariri idadi, kuweka punguzo, au kubadili aina ya mauzo.</div>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">04</div>
+            <div class="flow-text">Hifadhi Mauzo</div>
+            <div class="flow-desc">Kamilisha muamala kwa kuchagua njia ya malipo ili kusajili rasmi mauzo na kukata stoku kiotomatiki.</div>
+        </div>
+    </div>
+
+    <!-- Onboarding Section -->
+    <h1 class="section-title">2. Kuanza Kutumia Mfumo (Onboarding)</h1>
+    <p>
+        Mfumo huu unazingatia urahisi wa kuanza kutumia ili kupunguza vikwazo kwa wafanyabiashara wapya. Mchakato wa usajili unajumuisha hatua zifuatazo:
+    </p>
+    <div class="ui-card primary-accent">
+        <div class="ui-card-title">Hatua za Kusajili Akaunti Mpya</div>
+        <ul>
+            <li><strong>Usajili wa Awali:</strong> Mtumiaji anaweza kujisajili kwa urahisi akitumia Barua Pepe (Email) au Namba ya Simu ya mkononi.</li>
+            <li><strong>Uthibitisho wa Usalama (OTP):</strong> Mfumo utatuma namba maalum ya siri ya muda mfupi kwenye simu/barua pepe ili kuthibitisha umiliki wa akaunti kwa usalama.</li>
+            <li><strong>Njia ya Jaribio (Guest Mode):</strong> Chaguo mbadala linalomruhusu mfanyabiashara kuingia na kujaribu mfumo moja kwa moja bila kuhitaji usajili wa awali.</li>
+            <li><strong>Taarifa za Biashara:</strong> Mtumiaji anaingiza Jina la Duka au Biashara yake ili kubinafsisha mfumo.</li>
+            <li><strong>Kukamilisha:</strong> Kubofya kitufe cha 'Maliza' (Finish) ili kufungua skrini kuu na kuanza kazi mara moja.</li>
+        </ul>
+    </div>
+
+    <!-- Layout Design and Dashboard -->
+    <h1 class="section-title">3. Muundo wa Skrini Kuu (The Home Layout Design)</h1>
+    <p>
+        Skrini ya nyumbani imeundwa kwa muundo safi unaowapa watumiaji uwezo wa kuona takwimu muhimu mara moja na kufikia sehemu kuu kwa urahisi kupitia mfumo rahisi wa menyu.
+    </p>
+
+    <div class="home-wireframe">
+        <div class="wireframe-header">Muhtasari wa Takwimu za Duka (Simple Analytics Dashboard)</div>
+        <div class="wireframe-grid">
+            <div class="grid-row">
+                <div class="wireframe-btn">Uza Mpya<br><span style="font-size:7.5pt; font-weight:normal;">(New Sale)</span></div>
+                <div class="wireframe-space"></div>
+                <div class="wireframe-btn">Stoku<br><span style="font-size:7.5pt; font-weight:normal;">(Stock Button)</span></div>
+                <div class="wireframe-space"></div>
+                <div class="wireframe-btn">Madeni<br><span style="font-size:7.5pt; font-weight:normal;">(Debt Button)</span></div>
+            </div>
+        </div>
+        <div class="wireframe-space-block">
+            Eneo la Maudhui ya Skrini (Content View Area)
+        </div>
+        <div class="wireframe-nav">
+            <div class="wireframe-nav-item active">🏠 Nyumbani</div>
+            <div class="wireframe-nav-item">📦 Oda</div>
+            <div class="wireframe-nav-item">🛠️ Zana</div>
+            <div class="wireframe-nav-item">⚙️ Mipangilio</div>
+        </div>
+    </div>
+
+    <div class="grid-table">
+        <div class="grid-row">
+            <div class="grid-cell">
+                <div class="ui-card" style="min-height: 110px;">
+                    <div class="ui-card-title">Sehemu ya Juu ya Dashibodi</div>
+                    <div style="font-size: 9pt; color:#475569;">
+                        Inajumuisha sehemu ya <strong>Uchambuzi Rahisi</strong> (chati na muhtasari wa haraka wa mwenendo wa biashara) pamoja na vitufe vitatu vikubwa vya ufikiaji wa haraka: Uza Mpya, Stoku, na Madeni.
+                    </div>
+                </div>
+            </div>
+            <div class="grid-cell">
+                <div class="ui-card" style="min-height: 110px;">
+                    <div class="ui-card-title">Mfumo wa Urambazaji wa Chini</div>
+                    <div style="font-size: 9pt; color:#475569;">
+                        Menyu ya chini <strong>(Bottom Navigation)</strong> inajumuisha sehemu nne thabiti: Nyumbani (Home), Oda (Orders), Zana za Biashara (Tools), na Mipangilio (Settings).
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break-before"></div>
+
+    <!-- Sales Modules and Tabs -->
+    <h1 class="section-title">4. Moduli ya Mauzo (Sales Screen)</h1>
+    <p>
+        Skrini hii imeundwa mahususi ili kuharakisha mchakato wa kuhudumia wateja dukani. Mfumo unakumbuka sehemu ya mwisho uliyofungua ili mtumiaji asipoteze muda wakati wa kufungua app tena.
+    </p>
+
+    <div class="grid-table">
+        <div class="grid-row">
+            <div class="grid-cell">
+                <div class="ui-card primary-accent">
+                    <div class="ui-card-title">Muundo wa Sehemu Kuu Nne (Tabs)</div>
+                    <ul>
+                        <li><strong>Kuskani (Scan):</strong> Inatumia kamera ya simu kusoma barcode/QR code za bidhaa ili kuziingiza moja kwa moja kwenye toroli kwa haraka.</li>
+                        <li><strong>Utafutaji Mahiri (Smart Search):</strong> Inakuwezesha kutafuta bidhaa kwa kuandika jina, ikiwa na mfumo wa mapendekezo wa kushuka chini (Dropdown).</li>
+                        <li><strong>Mauzo ya Haraka (Quick Sale):</strong> Inatumika kwa ajili ya kuuza huduma au bidhaa zisizo na stoku maalum. Unaingiza bei pekee na kukamilisha mauzo.</li>
+                        <li><strong>Vipendwa (Favorite):</strong> Eneo maalum lililotengwa kwa bidhaa zinazouzwa mara kwa mara, ikiwa na mfumo wa ndani wa sehemu ndogo 3 zifuatazo:</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="grid-cell">
+                <div class="ui-card">
+                    <div class="ui-card-title">Mchanganuo wa Sehemu ya Vipendwa</div>
+                    <div style="margin-bottom: 8px;">
+                        <span class="tab-indicator">📌 Zilizoshikiliwa (Bidhaa 5)</span>
+                        <span class="tab-indicator">🔥 Zinazotoka Sana (Bidhaa 5)</span>
+                        <span class="tab-indicator">⏱️ Zilizouzwa Mwisho (Bidhaa 8)</span>
+                    </div>
+                    <p style="font-size: 9pt; margin-top: 5px;">
+                        Muundo huu wa ndani unamsaidia muuzaji kupata bidhaa zinazohitajika haraka sana bila kufanya utafutaji upya kila mara.
+                    </p>
+                    <div class="alert-box" style="margin: 5px 0 0 0; padding: 10px;">
+                        <strong style="color:#0369a1; font-size: 8.5pt;">Mwonekano wa Chini Unaoambatana (Sticky Preview):</strong><br>
+                        Inabaki chini ya skrini ikionyesha idadi ya bidhaa zilizopo kwenye toroli pamoja na vitufe vya haraka vya <em>Kagua Toroli</em> na <em>Hifadhi Mauzo</em>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Management -->
+    <h1 class="section-title">5. Udhibiti wa Toroli la Mauzo (Cart Management)</h1>
+    <p>
+        Ukurasa wa Toroli unatoa muonekano wa ukurasa mzima (Full page preview) ili kukagua na kurekebisha bidhaa zote kabla ya kukamilisha muamala au kuamua hatua nyingine ya kibiashara.
+    </p>
+
+    <div class="ui-card">
+        <div class="ui-card-title">Vipengele vya Uendeshaji Ndani ya Toroli</div>
+        <ul>
+            <li><strong>Uhariri wa Idadi (Quantity):</strong> Inasaidia uingizaji wa namba nzima na zile za mivunjiko (kama vile kilo 1.5). Pia unaweza kubadilisha idadi kwa kushikilia vitufe vya kuongeza au kupunguza (+/-) kwa mabadiliko ya haraka.</li>
+            <li><strong>Ufutaji wa Bidhaa:</strong> Mtumiaji anaweza kufuta bidhaa moja moja au kusafisha toroli zima kwa mara moja.</li>
+            <li><strong>Sehemu ya Punguzo (Discount):</strong> Inaruhusu kuweka punguzo la bei kwa mteja kwa kiasi cha fedha kabla ya kulipia.</li>
+            <li><strong>Njia za Malipo za Chini:</strong> Chaguzi zilizopo ni Fedha Taslimu (Cash), Madeni (Debts), Malipo ya Mtandao/Benki (Digital), na Mchanganyiko (Mixed). Mfumo umewekewa <strong>Fedha Taslimu kama chaguo la msingi</strong>.</li>
+        </ul>
+        
+        <div class="report-box">
+            <strong style="color: #0f172a; font-size: 9pt;">Vitufe vya Maamuzi na Hatua:</strong>
+            <p style="font-size: 8.5pt; margin: 4px 0 0 0;">
+                Mtumiaji anaweza kuchagua jinsi ya kuhifadhi muamala husika kulingana na mahitaji:
+                <br>• <strong>Hifadhi Mauzo (Save Sale):</strong> Inahifadhi kama mauzo rasmi yaliyokamilika na kukata stoku.
+                <br>• <strong>Weka Oda (Order):</strong> Toroli linawekewa alama kama 'Oda' itakayoshughulikiwa baadaye, huku ikifungua kisanduku cha kuingiza namba ya mteja.
+                <br>• <strong>Gharama/Matumizi (Expense):</strong> Inafungua kisanduku maalum cha kujaza taarifa ili kuhifadhi matumizi yaliyofanyika moja kwa moja kutoka kwenye mauzo hayo.
+            </p>
+        </div>
+    </div>
+
+    <!-- Debts and Stock Modules -->
+    <h1 class="section-title">6. Udhibiti wa Madeni na Stoku (Debts &amp; Stock)</h1>
+    <div class="grid-table">
+        <div class="grid-row">
+            <!-- Debts Cell -->
+            <div class="grid-cell">
+                <div class="ui-card primary-accent" style="min-height: 250px;">
+                    <div class="ui-card-title">6.1 Moduli ya Madeni (Debts)</div>
+                    <p style="font-size: 9pt;">Inasaidia kufuatilia wateja wanaochukua bidhaa kwa mkopo ili kuzuia upotevu wa mapato:</p>
+                    <ul>
+                        <li>Kuangalia orodha kamili ya madeni na tarehe za mwisho wa malipo.</li>
+                        <li>Kusajili na kupokea malipo ya madeni (kamili au kidogo kidogo).</li>
+                        <li>Muhtasari wa jumla ya madeni yanayodaiwa nje.</li>
+                        <li><strong>Mwasilisho wa Haraka:</strong> Kupiga simu au kutuma ujumbe mfupi kwa mteja anayedaiwa kwa mguso mmoja tu kutoka kwenye mfumo.</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Stock Cell -->
+            <div class="grid-cell">
+                <div class="ui-card" style="min-height: 250px;">
+                    <div class="ui-card-title">6.2 Moduli ya Stoku (Stock)</div>
+                    <p style="font-size: 9pt;">Inatoa njia mbili za usajili wa bidhaa kulingana na uhitaji na muda wako:</p>
+                    <ul>
+                        <li><strong>Uundaji Rahisi:</strong> Inahitaji taarifa za msingi tu (Jina la bidhaa, idadi, bei ya kuuzia na ya kununulia).</li>
+                        <li><strong>Usajili Kamili:</strong> Inajumuisha maelezo ya kina kama kiwango cha chini cha stoku, gharama za usafirishaji, Muuzaji, Jamii/Kundi, Kipimo, Barcode, Tarehe ya kumalizika muda (Expiry) na kiwango cha juu kinacholengwa.</li>
+                        <li>Kuhariri, kufuta bidhaa, na kuongeza stoku mpya (Restock).</li>
+                        <li><strong>Kuingiza kwa Wingi (Import):</strong> Kupakia bidhaa nyingi kwa pamoja kupitia faili la CSV (Excel).</li>
+                        <li>Kupanga, kuchuja, na kusafirisha orodha kwenda CSV au kuichapa.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break-before"></div>
+
+    <!-- Completed Modules (Orders, Settings, Pricing) -->
+    <h1 class="section-title">7. Oda, Mipangilio na Malipo</h1>
+
+    <!-- Orders Card -->
+    <div class="ui-card">
+        <div class="ui-card-title">7.1 Udhibiti wa Oda (Orders) </div>
+        <p style="font-size: 9pt;">
+            Inatumika kusimamia oda zote zilizowekwa na wateja kabla hazijawafikia au kulipiwa kikamilifu:
+        </p>
+        <div class="grid-table">
+            <div class="grid-row">
+                <div class="grid-cell">
+                    <ul>
+                        <li>Kutafuta, kupanga, kuchuja na kusafirisha orodha ya oda kama CSV.</li>
+                        <li>Kupiga simu ya haraka kwa mteja mwenye oda moja kwa moja.</li>
+                        <li>Mawasiliano ya ziada kupitia WhatsApp na SMS ya kawaida.</li>
+                    </ul>
+                </div>
+                <div class="grid-cell">
+                    <ul>
+                        <li>Kudhibiti hali ya oda: Hali ya malipo na Hali ya uwasilishaji wa mzigo.</li>
+                        <li>Kutoa na kuchapa risiti au kuipakua kama PDF.</li>
+                        <li><strong>Kuhifadhi Mauzo kiotomatiki:</strong> Pale oda inapowekewa alama kuwa imelipiwa na kuwasilishwa, mfumo unaingiza muamala kwenye mauzo yenyewe.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings & Pricing Grid -->
+    <div class="grid-table">
+        <div class="grid-row">
+            <!-- Settings -->
+            <div class="grid-cell">
+                <div class="ui-card primary-accent" style="min-height: 230px;">
+                    <div class="ui-card-title">7.2 Mipangilio (Settings)</div>
+                    <ul style="font-size: 8.5pt;">
+                        <li>Kuangalia siku zilizobaki za matumizi ya leseni na tarehe ya mwisho.</li>
+                        <li>Kubadili lugha ya mfumo (Kiswahili au Kiingereza).</li>
+                        <li>Kufunga programu kwa namba ya siri (App Lock) kwa usalama wa data zako.</li>
+                        <li>Kituo cha usaidizi chenye viungo vya video za mafunzo na maelekezo.</li>
+                        <li>Kupiga simu kwa watoa huduma wa Simamia App na kushiriki programu.</li>
+                        <li><strong>Usimamizi wa Data:</strong> Kufuta data zote, kutoa nakala ya hifadhidata (Backup/Export) na kurudisha nakala (Import DB).</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Pricing -->
+            <div class="grid-cell">
+                <div class="ui-card" style="min-height: 230px;">
+                    <div class="ui-card-title">7.3 Kifurushi na Malipo (Pricing) </div>
+                    <p style="font-size: 8.5pt;">Mchakato rahisi wa hatua tatu (3) kuwezesha au kuongeza muda wa leseni ya matumizi ya mfumo:</p>
+                    <div style="padding-left: 5px; font-size: 8.5pt;">
+                        <div style="margin-bottom: 6px;"><strong style="color:#0ea5e9;">Hatua ya 1:</strong> Uchaguzi wa kifurushi unachotaka (cha mwezi au mwaka).</div>
+                        <div style="margin-bottom: 6px;"><strong style="color:#0ea5e9;">Hatua ya 2:</strong> Kusoma na kufuata maelekezo rahisi ya malipo yaliyowekwa kwenye skrini.</div>
+                        <div><strong style="color:#0ea5e9;">Hatua ya 3:</strong> Kuthibitisha malipo kwa kujaza namba ya muamala (Transaction ID) ili mfumo ujifungue kiotomatiki.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Business Tools & Deep Reports -->
+    <h1 class="section-title">8. Zana za Biashara na Ripoti za Kina (Business Tools)</h1>
+    <p>
+        Ukibofya sehemu ya <strong>Zana (Tools)</strong> kwenye menyu ya chini, utaletewa kadi maalum za ufikiaji wa vipengele vifuatavyo vya usimamizi wa duka lako:
+    </p>
+
+    <div class="ui-card">
+        <div class="grid-table">
+            <div class="grid-row">
+                <div class="grid-cell">
+                    <ul>
+                        <li><strong>Makundi (Categories):</strong> Kuongeza, kuhariri, na kupanga bidhaa zako katika makundi (k.m. Vinywaji, Vyakula).</li>
+                        <li><strong>Wasambazaji (Suppliers):</strong> Kusimamia taarifa za wauzaji wa jumla, kupiga simu, kutuma ujumbe au kuwasiliana nao kupitia WhatsApp.</li>
+                        <li><strong>Wateja (Customers):</strong> Kuhifadhi na kusimamia taarifa za wateja wako wa kila siku kwa ajili ya uaminifu na mawasiliano.</li>
+                    </ul>
+                </div>
+                <div class="grid-cell">
+                    <ul>
+                        <li><strong>Matumizi (Expenses):</strong> Kusajili na kufuatilia matumizi ya duka ukiwa na mchanganuo kamili kulingana na aina ya matumizi.</li>
+                        <li><strong>Bidhaa Zilizoondolewa (Returns):</strong> Kusimamia kumbukumbu za bidhaa zinazorudishwa na wateja au zinazorudishwa kwa wasambazaji.</li>
+                        <li><strong>Historia ya Mauzo:</strong> Kuangalia kumbukumbu za mauzo yote ya nyuma na uwezo wa kuchapa au kutoa risiti upya.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p style="font-size: 9pt; margin: 0;"><strong>Ziada (Zilizoombwa):</strong> Mfumo una sehemu maalum ya kusajili bidhaa zilizoombwa na wateja lakini hazipo kwenye stoku, ili kukusaidia kufanya maamuzi sahihi ya manunuzi yanayofuata.</p>
+    </div>
+
+    <div class="ui-card primary-accent">
+        <div class="ui-card-title">Sehemu ya Ripoti za Kina (Deep Reports)</div>
+        <p style="font-size: 9pt;">Mfumo unachambua data zako kiotomatiki na kuzigeuza kuwa ripoti za picha (grafu) na muhtasari rahisi wa kueleweka:</p>
+        
+        <div class="report-box">
+            <strong style="color:#0369a1; font-size:9pt;">📈 Ripoti za Fedha na Faida/Hasara:</strong><br>
+            <span class="report-tag">Grafu ya Faida na Hasara</span>
+            <span class="report-tag">Kadi ya Muhtasari wa Mapato</span>
+            <span class="report-tag">Mchanganuo wa Matumizi</span>
+        </div>
+
+        <div class="report-box">
+            <strong style="color:#0369a1; font-size:9pt;">📊 Uchambuzi wa Mauzo (Sales Analytics):</strong><br>
+            <span class="report-tag">Grafu ya Mwenendo wa Mauzo</span>
+            <span class="report-tag">Chati ya Duara ya Mgawanyo wa Mauzo</span>
+            <span class="report-tag">🏆 Bidhaa 5 Zinazoongoza kwa Mauzo</span>
+        </div>
+
+        <div class="report-box">
+            <strong style="color:#0369a1; font-size:9pt;">🗃️ Hali ya Bidhaa na Stoku (Inventory Status):</strong><br>
+            <span class="report-tag">⚠️ Bidhaa 5 Zilizopungua Sana (Critical)</span>
+            <span class="report-tag">🐢 Bidhaa 5 Zinazotoka Taratibu (Slow Moving)</span>
+            <span class="report-tag">💰 Bidhaa 5 Zenye Faida Kubwa</span>
+            <span class="report-tag">📉 Bidhaa 5 Zenye Faida Ndogo</span>
+        </div>
+    </div>
+
+</body>
+</html>
