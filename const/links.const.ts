@@ -4,6 +4,10 @@ export const SERVER_LINK = isPrd ?
     'https://simamia.co.tz' 
     : 'http://localhost:3000';
 
+
+export const PHONE_SUPPORT = "+255 67 429 1587"
+export const PHONE_LINK = "tel:+255674291587"
+
 // how to get direct download from google drive
 /* 
 1. format of given link is https://drive.google.com/file/d/1A2B3C4D5E6F7G8H9I0J/view?usp=sharing

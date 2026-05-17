@@ -1,3 +1,4 @@
+import { APK_LINK, PHONE_LINK, PHONE_SUPPORT } from '@/const/links.const';
 import Link from 'next/link';
 
 export const Footer = () => {
@@ -24,7 +25,7 @@ export const Footer = () => {
             <ul className="mt-4 space-y-2 text-sm text-gray-600">
               <li>
                 <Link
-                  href="#"
+                  href={`${APK_LINK}`}
                   className="hover:text-blue-600 transition-colors"
                 >
                   Programu ya Simu (App)
@@ -32,18 +33,10 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/private"
                   className="hover:text-blue-600 transition-colors"
                 >
-                  Gharama/Bei
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="hover:text-blue-600 transition-colors"
-                >
-                  Nyaraka za API
+                  Akaunti
                 </Link>
               </li>
             </ul>
@@ -57,7 +50,7 @@ export const Footer = () => {
             <ul className="mt-4 space-y-2 text-sm text-gray-600">
               <li>
                 <Link
-                  href="#"
+                  href="/help-center"
                   className="hover:text-blue-600 transition-colors"
                 >
                   Kituo cha Msaada
@@ -65,7 +58,7 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/privacy-policy"
                   className="hover:text-blue-600 transition-colors"
                 >
                   Sera ya Faragha
@@ -73,7 +66,7 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/terms"
                   className="hover:text-blue-600 transition-colors"
                 >
                   Masharti ya Matumizi
@@ -90,10 +83,10 @@ export const Footer = () => {
             <div className="mt-4 text-sm text-gray-600">
               Tupigie kupitia: <br />
               <a
-                href="tel:+255674291587"
+                href={PHONE_LINK}
                 className="font-bold hover:text-blue-600 transition-colors"
               >
-                +255 67 429 1587
+                {PHONE_SUPPORT}
               </a>
             </div>
           </div>
