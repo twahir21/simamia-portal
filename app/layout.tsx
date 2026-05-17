@@ -14,22 +14,25 @@ const delius = Delius({
 
 export const metadata: Metadata = {
   title: {
-    default: "Simamia App",
+    default: "Simamia App — Rahisisha Uendeshaji wa Biashara Yako",
     template: "%s | Simamia",
   },
   description:
-    "Simamia is a business management app that helps you track sales, expenses, debts, and stock easily. Works offline, fast, and secure—built for small businesses.",
+    "Simamia ni programu rahisi ya kusimamia biashara. Rekodi mauzo, matumizi, madeni, na stoki (inventory) hata bila mtandao. Salama, haraka, na maalum kwa wafanyabiashara.",
 
   keywords: [
     "Simamia",
-    "business management app",
-    "offline POS app",
-    "sales tracking app",
-    "expenses tracker",
-    "debt management app",
-    "inventory management Africa",
+    "Simamia App",
+    "programu ya biashara",
+    "kurekodi mauzo offline",
+    "App ya mauzo na matumizi",
+    "daftari la madeni kidijitali",
+    "kusimamia stoki",
+    "simamia duka",
+    "POS ya simu Tanzania",
+    "kuhifadhi kumbukumbu za biashara",
+    "kujua faida na hasara",
     "SME tools Tanzania",
-    "offline business app",
   ],
 
   authors: [{ name: "Simamia Team" }],
@@ -39,28 +42,28 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://simamia.co.tz"),
 
   openGraph: {
-    title: "Simamia App — Manage Your Business Smarter",
+    title: "Simamia App — Simamia Mauzo, Stoki na Madeni kwa Urahisi",
     description:
-      "Track sales, expenses, debts, and stock in one app. Works offline and designed for real businesses in Africa.",
+      "Programu ya kijanja ya kusimamia duka au biashara yako. Inafanya kazi bila bando (offline). Anza kufuatilia faida yako leo!",
     url: "https://simamia.co.tz",
     siteName: "Simamia",
     images: [
       {
-        url: "/og-simamia.webp", 
+        url: "/og-simamia.webp",
         width: 1200,
         height: 630,
-        alt: "Simamia Business Management App",
+        alt: "Simamia — App ya Kusimamia Biashara, Mauzo na Stoki",
       },
     ],
-    locale: "en_US",
+    locale: "sw_TZ", // Updated to represent Tanzanian Swahili locale
     type: "website",
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Simamia App",
+    title: "Simamia App — App ya Kurekodi Mauzo na Stoki",
     description:
-      "Offline-first business management app for tracking sales, expenses, debts, and stock.",
+      "Rahisisha hesabu za duka lako. Rekodi mauzo, dhibiti madeni, na angalia stoki hata ukiwa offline.",
     images: ["/og-simamia.webp"],
   },
 
@@ -71,6 +74,10 @@ export const metadata: Metadata = {
   },
 
   category: "business",
+
+  alternates: {
+    canonical: "https://simamia.co.tz",
+  },
 };
 
 export default function RootLayout({
