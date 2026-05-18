@@ -41,7 +41,7 @@ unit, qr/barcode, expire date, target max
 - imports (Bulk stocks via csv)
 - prints, export csv, sort and filter
 
-## 6. orders (<<<DONE>>>)
+## 6. orders
 - Print (pdf), filter, Sort, export (csv)
 - primary call to customer
 - Change status (payment status and delivery status)
@@ -50,7 +50,7 @@ unit, qr/barcode, expire date, target max
 - save sale upon paid and delivered
 
 
-## 7. settings(<<<done>>>)
+## 7. settings
 - View remaining days
 - view expire date
 - change language
@@ -62,7 +62,7 @@ unit, qr/barcode, expire date, target max
 - Export db
 - Import db
 
-## 8. pricing (<<<<<done>>>>>)
+## 8. pricing 
 - package selection (step 1)
 - payment instructions (step 2)
 - confirm payment and fill transaction ID (step 3)
