@@ -19,4 +19,4 @@ file id here is 1A2B3C4D5E6F7G8H9I0J
 
 // host them in github for simpler and reliable way
 
-export const APK_LINK = "https://github.com/twahir21/simamia/releases/download/v1/simamia.apk"
+export const APK_LINK = "https://github.com/twahir21/simamia_apk/releases/download/v1/simamia.apk"

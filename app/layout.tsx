@@ -24,6 +24,8 @@ export const metadata: Metadata = {
     "Simamia",
     "Simamia App",
     "programu ya biashara",
+    "App ya biashara",
+    "Business management app",
     "kurekodi mauzo offline",
     "App ya mauzo na matumizi",
     "daftari la madeni kidijitali",
