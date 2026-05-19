@@ -2,15 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import admin from "firebase-admin";
 import crypto from "crypto";
+import { adminDb } from "@/firebase/admin.firebase";
 
-// Initialize Firebase Admin if not already initialized
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.applicationDefault(), // Or use service account key
-    });
-}
-
-const db = admin.firestore();
 
 // 1. Define Validation Schema with Zod
 const otpRequestSchema = z.object({
@@ -31,7 +24,7 @@ function generateOTP(): string {
 // Helper: Simple rate limit check (Optional but recommended)
 const checkRateLimit = async (identity: string, channel: string) => {
     const key = `otp_limits:${channel}:${identity}`;
-    const docRef = db.collection("rate_limits").doc(key);
+    const docRef = adminDb.collection("rate_limits").doc(key);
     const doc = await docRef.get();
 
     if (doc.exists) {
@@ -93,7 +86,7 @@ export async function POST(request: Request) {
         // Document ID: A unique ID or composite key like 'phone:+1234567890'
         const docId = `${channel}:${identity}`;
 
-        await db.collection("otps").doc(docId).set({
+        await adminDb.collection("otps").doc(docId).set({
             identity: identity,
             channel: channel,
             otp: otp, // In production, consider hashing this if you don't need to read it back directly for comparison
