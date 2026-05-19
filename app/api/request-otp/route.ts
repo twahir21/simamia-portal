@@ -109,8 +109,6 @@ export async function POST(request: Request) {
                 success: true,
                 message: `OTP sent to your ${channel}`,
                 expiresIn: 300, // 5 minutes
-                // NEVER return OTP in production response unless explicitly for dev debugging
-                ...(process.env.NODE_ENV === "development" && { debug_otp: otp }),
             },
             { status: 200 }
         );
