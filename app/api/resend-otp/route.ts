@@ -19,8 +19,7 @@ const CONFIG = {
     OTP_EXPIRY_MINUTES: 2,
     MAX_FAILED_ATTEMPTS: 5,
     DEVICE_LOCK_DURATION_MS: 60 * 60 * 1000, // 1 hour
-    // Tiers: index 0 = 1st resend, index 1 = 2nd resend, etc.
-    BACKOFF_TIERS: [60, 120, 300, 86400],
+    BACKOFF_TIERS: [0, 60, 120, 300, 86400],
 };
 
 // 3. Secure OTP Generation
@@ -162,8 +161,7 @@ export async function POST(request: Request) {
         );
 
         // Send OTP (mocked - integrate your provider)
-        // IMPORTANT: Never log the raw OTP in production
-        console.log(`[RESEND] OTP dispatched to ${identity} via ${channel} | hash:${otpHash.substring(0, 10)}...`);
+        console.log(`[RESEND] OTP of ${identity} via ${channel} | OTP:${otp}...`);
 
         // TODO: Integrate SMS/Email service
         // if (channel === 'phone') await sendSMS(identity, `Your code: ${otp}`);
