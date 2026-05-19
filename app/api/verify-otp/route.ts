@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import admin from "firebase-admin";
 import { adminDb } from "@/firebase/admin.firebase";
-
+import crypto from "crypto"
 
 // 1. Validation Schema for Verify Request
 const verifySchema = z.object({
@@ -11,15 +11,22 @@ const verifySchema = z.object({
     error: () => ({ message: "Channel must be 'phone' or 'email'" }),
   }),
   otp: z.string().regex(/^\d{4}$/, "OTP must be a 4-digit code"),
-  deviceId: z.string().optional(), // Optional: for audit/logging
+  deviceId: z.string()
 });
 
 // 2. Constants for Security Policies
 const CONFIG = {
-  OTP_EXPIRY_MINUTES: 5,
+  OTP_EXPIRY_MINUTES: 2,
   MAX_VERIFY_ATTEMPTS: 5,
-  RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000, // 15 minutes lockout after max attempts
+  // Progressive lockout delays based on cumulative fails (in milliseconds)
+  LOCKOUT_TIERS: [
+    60 * 1000,          // 1st tier lockout: 60 seconds
+    2 * 60 * 1000,      // 2nd tier lockout: 2 minutes
+    5 * 60 * 1000,      // 3rd tier lockout: 5 minutes
+    24 * 60 * 60 * 1000 // 4th tier+ lockout: 24 hours
+  ]
 };
+
 
 export async function POST(request: Request) {
   try {
@@ -42,9 +49,47 @@ export async function POST(request: Request) {
     const docId = `${channel}:${identity}`;
     const otpRef = adminDb.collection("otps").doc(docId);
 
+    const deviceLockRef = adminDb.collection("device_locks").doc(deviceId);
+
+    const now = new Date();
+
+    // --- Security Check 1: Progressive Device Lockout ---
+    if (deviceLockRef) {
+      const deviceLockDoc = await deviceLockRef.get();
+      if (deviceLockDoc.exists) {
+        const lockData = deviceLockDoc.data();
+        const failedAttempts = lockData?.failedAttempts || 0;
+        const lastFailedAt = lockData?.lastFailedAt?.toDate();
+
+        // If user has failed attempts, calculate progressive cooldown
+        if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS && lastFailedAt) {
+          // Determine tier: index is based on how many intervals of MAX_VERIFY_ATTEMPTS have passed
+          const tierIndex = Math.min(
+            Math.floor(failedAttempts / CONFIG.MAX_VERIFY_ATTEMPTS) - 1,
+            CONFIG.LOCKOUT_TIERS.length - 1
+          );
+          const lockWindowMs = CONFIG.LOCKOUT_TIERS[tierIndex];
+          const unlockAt = lastFailedAt.getTime() + lockWindowMs;
+
+          if (now.getTime() < unlockAt) {
+            const retryAfter = Math.ceil((unlockAt - now.getTime()) / 1000);
+            return NextResponse.json(
+              {
+                success: false,
+                error: "Too many failed attempts. Device temporarily locked.",
+                retryAfter, // Time remaining in seconds
+              },
+              { status: 429 }
+            );
+          }
+        }
+      }
+    }
+
     // --- Fetch OTP Record ---
     const doc = await otpRef.get();
 
+    // ALL validation inside transaction
     // Fail fast: No record found (don't reveal if identity exists or not)
     if (!doc.exists) {
       return NextResponse.json(
@@ -54,110 +99,104 @@ export async function POST(request: Request) {
     }
 
     const data = doc.data();
-    if (!data) {
+    if (!data || data.isUsed) {
       return NextResponse.json(
         { success: false, error: "Invalid or expired OTP" },
         { status: 400 }
       );
     }
 
-    // --- Security Check 1: Already Used? ---
-    if (data.isUsed) {
-      return NextResponse.json(
-        { success: false, error: "OTP has already been used" },
-        { status: 400 }
-      );
-    }
-
     // --- Security Check 2: Expired? ---
-    const now = new Date();
     const expiresAt = data.expiresAt?.toDate();
     if (!expiresAt || now > expiresAt) {
-      // Optional: Clean up expired OTPs asynchronously
-      // otpRef.delete(); 
       return NextResponse.json(
-        { success: false, error: "OTP has expired" },
+        { success: false, error: "Invalid or expired OTP" },
         { status: 400 }
       );
     }
 
-    // --- Security Check 3: Brute Force Protection ---
-    const attemptCount = data.attemptCount || 0;
-    const lastAttempt = data.lastAttemptAt?.toDate();
-
-    // Check if locked out due to too many failed attempts
-    if (attemptCount >= CONFIG.MAX_VERIFY_ATTEMPTS) {
-      if (lastAttempt) {
-        const timeSinceLastAttempt = now.getTime() - lastAttempt.getTime();
-        if (timeSinceLastAttempt < CONFIG.RATE_LIMIT_WINDOW_MS) {
-          const remainingLockout = Math.ceil(
-            (CONFIG.RATE_LIMIT_WINDOW_MS - timeSinceLastAttempt) / 1000
-          );
-          return NextResponse.json(
-            {
-              success: false,
-              error: "Too many failed attempts. Please try again later.",
-              retryAfter: remainingLockout, // seconds
-            },
-            { status: 429 }
-          );
-        }
-      }
-      // Lockout period expired, reset attempts
-      await otpRef.update({ attemptCount: 0 });
-    }
-
-    // --- Verify OTP Code ---
-    if (data.otp !== otp) {
-      // Increment attempt count and update timestamp
-      await otpRef.update({
-        attemptCount: admin.firestore.FieldValue.increment(1),
-        lastAttemptAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      const remainingAttempts = CONFIG.MAX_VERIFY_ATTEMPTS - (attemptCount + 1);
-
+    // device
+    if (data.deviceId && data.deviceId !== deviceId) {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid OTP",
-          ...(remainingAttempts > 0 && {
-            message: `${remainingAttempts} attempt${remainingAttempts === 1 ? "" : "s"} remaining`,
-          }),
+          error: "Invalid verification request",
         },
         { status: 400 }
       );
     }
 
-    // --- SUCCESS: OTP Matches ---
-    // 1. Mark as used
-    // 2. Reset attempt counter for future use
-    // 3. Record verification time
-    await otpRef.update({
-      isUsed: true,
-      verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-      attemptCount: 0,
-    });
+    if ((data.attemptCount || 0) >= 5) {
+      return NextResponse.json(
+        { success: false, error: "OTP invalidated" },
+        { status: 400 }
+      );
+    }
 
-    // Optional: Log successful verification for audit
-    await adminDb.collection("otp_logs").add({
-      identity,
-      channel,
-      deviceId: deviceId || null,
-      action: "verify_success",
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    // --- Verify OTP Hash ---
+    const incomingHash = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "OTP verified successfully",
-        verified: true,
-        // In production, you would typically issue a JWT or session token here
-        // token: generateAuthToken(identity),
-      },
-      { status: 200 }
-    );
+
+            if (data.otpHash !== incomingHash) {
+    
+                // Track failed attempt on the individual OTP doc
+                await otpRef.update({
+                    attemptCount: admin.firestore.FieldValue.increment(1),
+                    lastAttemptAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+    
+                // Log failure to device profile
+                await deviceLockRef.set({
+                    failedAttempts: admin.firestore.FieldValue.increment(1),
+                    lastFailedAt: admin.firestore.FieldValue.serverTimestamp(),
+                }, { merge: true });
+    
+                const updatedDeviceDoc = await deviceLockRef.get();
+                const currentDeviceFails = updatedDeviceDoc.data()?.failedAttempts || 1;
+    
+                const remainder = currentDeviceFails % CONFIG.MAX_VERIFY_ATTEMPTS;
+                const remainingAttempts = remainder === 0 ? 0 : CONFIG.MAX_VERIFY_ATTEMPTS - remainder;
+    
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "Invalid or expired OTP",
+                        message: remainingAttempts > 0
+                            ? `${remainingAttempts} attempt${remainingAttempts === 1 ? "" : "s"} remaining before lock.`
+                            : "Device locked due to excessive failed entries.",
+                    },
+                    { status: 400 }
+                );
+            }
+    
+            // --- 4. SUCCESS: Use Atomic Batch Operations ---
+            const batch = adminDb.batch();
+    
+            batch.update(otpRef, {
+                isUsed: true,
+                verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+                attemptCount: 0,
+            });
+    
+            // Clear structural device limit penalties on successful login
+            batch.delete(deviceLockRef);
+    
+            const logRef = adminDb.collection("otp_logs").doc();
+            batch.set(logRef, {
+                identity,
+                channel,
+                deviceId,
+                action: "verify_success",
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            });
+    
+            await batch.commit();
+    
+            return NextResponse.json({ success: true, message: "OTP verified successfully", verified: true }, { status: 200 });
+
 
   } catch (error) {
     console.error("❌ Error in OTP verification:", error);

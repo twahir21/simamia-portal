@@ -78,7 +78,7 @@ export async function POST(request: Request) {
 
         // 4. Generate OTP
         const otp = generateOTP();
-        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiry
+        const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes expiry
 
         // 5. Save to Firebase Firestore
         // We use the identity as part of the document ID or query field for easy lookup
@@ -89,7 +89,10 @@ export async function POST(request: Request) {
         await adminDb.collection("otps").doc(docId).set({
             identity: identity,
             channel: channel,
-            otp: otp, // In production, consider hashing this if you don't need to read it back directly for comparison
+            otpHash: crypto
+                .createHash("sha256")
+                .update(otp)
+                .digest("hex"),
             deviceId: deviceId || null,
             appVersion: appVersion || null,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
