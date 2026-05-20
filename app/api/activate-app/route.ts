@@ -89,17 +89,14 @@ export async function POST(request: Request) {
                 .string()
                 .min(1, "Device ID is required"),
 
-            installId: z
-                .string()
-                .min(1, "Install ID is required"),
-
-            identity: z.string().optional(),
+            identity: z.string().optional(), // supports guest mode
 
             channel: z
-                .enum(["phone", "email"])
-                .optional(),
+                .enum(["phone", "email"], {
+                    error: () => "A channel should be phone or email"
+                }).optional(),
 
-            appVersion: z.string().optional(),
+            appVersion: z.string(),
 
             platform: z
                 .enum([
@@ -108,8 +105,7 @@ export async function POST(request: Request) {
                     "windows",
                     "macos",
                     "web",
-                ])
-                .optional(),
+                ]),
         });
 
         const validation = schema.safeParse(body);
@@ -126,7 +122,6 @@ export async function POST(request: Request) {
 
         const {
             deviceId,
-            installId,
             identity,
             channel,
             appVersion,
@@ -235,7 +230,6 @@ export async function POST(request: Request) {
         await registrationRef.set(
             {
                 deviceId,
-                installId,
 
                 type,
 
