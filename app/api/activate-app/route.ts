@@ -8,12 +8,31 @@ import crypto from "crypto";
 // ============================================================================
 
 interface ActivationData {
-    id: string;
+    id: string; // deviceId
     type: "account" | "guest";
     createdAt: number;
     expiresAt: number;
+    gracePeriodEnd: number;
     fingerprint: string;
+    v: number; // Token version for revocation
 }
+
+// ============================================================================
+// Config
+// ============================================================================
+
+const TOKEN_VERSION = 1; // Increment this to invalidate all existing tokens
+
+const PACKAGES = {
+    guest: {
+        duration: 7 * 24 * 60 * 60 * 1000, // 7 days
+        grace: 24 * 60 * 60 * 1000,        // 1 day offline buffer
+    },
+    account: {
+        duration: 14 * 24 * 60 * 60 * 1000, // 14 days
+        grace: 72 * 60 * 60 * 1000,         // 3 days offline buffer
+    },
+};
 
 // ============================================================================
 // Helpers
@@ -30,264 +49,185 @@ function createSignature(payload: string, secret: string): string {
         .digest("hex");
 }
 
-function generatePayload(
-    data: ActivationData,
-    secret: string
-): string {
+function generateSignedPayload(data: ActivationData, secret: string): string {
     const encoded = encode(JSON.stringify(data));
-
     const signature = createSignature(encoded, secret);
-
     return `${encoded}.${signature}`;
 }
 
-function createFingerprint(data: {
-    deviceId: string;
-    platform?: string;
-    appVersion?: string;
-}) {
-    return crypto
-        .createHash("sha256")
-        .update(
-            `${data.deviceId}:${data.platform ?? "unknown"}:${data.appVersion ?? "unknown"}`
-        )
-        .digest("hex");
+function createFingerprint(deviceId: string, platform: string): string {
+    const seed = `${deviceId}:${platform}`;
+    return crypto.createHash("sha256").update(seed).digest("hex");
 }
 
 // ============================================================================
-// Config
-// ============================================================================
-
-const PACKAGE_DURATION_MS = {
-    guest: 7 * 24 * 60 * 60 * 1000, // 7 days
-    account: 14 * 24 * 60 * 60 * 1000, // 14 days
-};
-
-const GRACE_PERIOD_MS = {
-    guest: 24 * 60 * 60 * 1000, // 24 hours
-    account: 72 * 60 * 60 * 1000, // 72 hours
-};
-
-// ============================================================================
-// ACTIVATE APP ENDPOINT
+// API Route
 // ============================================================================
 
 export async function POST(request: Request) {
     try {
-        // --------------------------------------------------------------------
-        // Parse request body
-        // --------------------------------------------------------------------
-
         const body = await request.json();
 
-        // --------------------------------------------------------------------
-        // Validation
-        // --------------------------------------------------------------------
-
+        // 1. Validation
         const schema = z.object({
-            deviceId: z
-                .string()
-                .min(1, "Device ID is required"),
-
-            identity: z.string().optional(), // supports guest mode
-
-            channel: z
-                .enum(["phone", "email"], {
-                    error: () => "A channel should be phone or email"
-                }).optional(),
-
-            appVersion: z.string(),
-
-            platform: z
-                .enum([
-                    "ios",
-                    "android",
-                    "windows",
-                    "macos",
-                    "web",
-                ]),
+            deviceId: z.string().min(10),
+            identity: z.string().optional(),
+            channel: z.enum(["phone", "email"]).optional(),
+            appVersion: z.string().optional(),
+            platform: z.enum(["ios", "android", "windows", "macos", "web"]),
         });
 
         const validation = schema.safeParse(body);
-
         if (!validation.success) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: validation.error.message,
-                },
-                { status: 400 }
-            );
+            return NextResponse.json({ success: false, error: validation.error.message }, { status: 400 });
         }
 
-        const {
-            deviceId,
-            identity,
-            channel,
-            appVersion,
-            platform,
-        } = validation.data;
-
-        // --------------------------------------------------------------------
-        // Determine package type
-        // --------------------------------------------------------------------
-
-        const isAccount =
-            !!identity && !!channel;
-
-        const type: "guest" | "account" =
-            isAccount ? "account" : "guest";
-
-        // --------------------------------------------------------------------
-        // Environment secret
-        // --------------------------------------------------------------------
-
-        const secret =
-            process.env.ACTIVATION_SECRET;
-
-        if (!secret) {
-            throw new Error(
-                "ACTIVATION_SECRET is not configured"
-            );
-        }
-
-        // --------------------------------------------------------------------
-        // Device fingerprint
-        // --------------------------------------------------------------------
-
-        const fingerprint = createFingerprint({
-            deviceId,
-            platform,
-            appVersion,
-        });
-
-        // --------------------------------------------------------------------
-        // Time calculations
-        // --------------------------------------------------------------------
-
+        const { deviceId, identity, channel, appVersion, platform } = validation.data;
         const now = Date.now();
 
-        const expiresAt =
-            now + PACKAGE_DURATION_MS[type];
+        
 
-        const gracePeriodEnd =
-            now + GRACE_PERIOD_MS[type];
+        // 2. Determine Type & Validate Account Status
+        let type: "guest" | "account" = "guest";
 
-        // --------------------------------------------------------------------
-        // Create signed activation payload
-        // --------------------------------------------------------------------
+        if (identity && channel) {
+            // CHECK IF ACCOUNT IS REAL AND VERIFIED
+            const userRef = adminDb.collection("users").doc(identity);
+            const userSnap = await userRef.get();
+
+            if (userSnap.exists) {
+                const userData = userSnap.data();
+                // Assuming you have a 'verified' or 'active' flag in your user doc
+                if (userData?.verified || userData?.status === "active") {
+                    type = "account";
+                } else {
+                    return NextResponse.json({
+                        success: false,
+                        error: "Account not verified. Please complete verification."
+                    }, { status: 403 });
+                }
+            } else {
+                return NextResponse.json({
+                    success: false,
+                    error: "Account not found."
+                }, { status: 404 });
+            }
+        }
+
+        // 3. Check Existing Registration
+        const regRef = adminDb.collection("registrations").doc(deviceId);
+        const existingSnap = await regRef.get();
+        const existingData = existingSnap.exists ? existingSnap.data() : null;
+
+        // SECURITY: Prevent Guest -> Guest reset abuse
+        if (existingData?.type === "guest" && type === "guest") {
+            // If the guest trial is still active, just return existing info
+            if (existingData.expiresAt > now) {
+                return NextResponse.json({
+                    success: true,
+                    message: "Trial already active",
+                    gracePeriodEnd: existingData.gracePeriodEnd,
+                    expiresAt: existingData.expiresAt
+                });
+            }
+            // If trial expired, block them from getting a new free trial on same device
+            return NextResponse.json({
+                success: false,
+                error: "Guest trial expired. Please create an account to continue.",
+                requiresUpgrade: true
+            }, { status: 403 });
+        }
+
+        // Add to upgrade block
+        if (existingData?.identity && existingData.identity !== identity) {
+            return NextResponse.json({
+                success: false,
+                error: "This device is already linked to a different account"
+            }, { status: 403 });
+        }
+
+        // 4. Calculate Expiry Logic
+        let expiresAt: number;
+        let gracePeriodEnd: number;
+        let createdAt: number = now;
+
+        if (existingData) {
+            // CASE A: User exists. Are they upgrading? Or Renewing?
+
+            // If upgrading from Guest to Account
+            if (existingData.type === "guest" && type === "account") {
+                const remainingGuestTime = Math.max(0, existingData.expiresAt - now);
+                expiresAt = now + PACKAGES.account.duration + remainingGuestTime;
+                gracePeriodEnd = now + PACKAGES.account.grace;
+                createdAt = existingData.createdAt; // Keep original
+            }
+            // If same type (Renewal)
+            else if (existingData.type === type) {
+                expiresAt = existingData.expiresAt;
+                gracePeriodEnd = now + PACKAGES[type].grace;
+                createdAt = existingData.createdAt;
+            }
+            // Downgrade (Account to Guest? Unlikely but handle it)
+            else {
+                expiresAt = now + PACKAGES[type].duration;
+                gracePeriodEnd = now + PACKAGES[type].grace;
+            }
+        } else {
+            // CASE B: New Device
+            expiresAt = now + PACKAGES[type].duration;
+            gracePeriodEnd = now + PACKAGES[type].grace;
+        }
+
+        // 5. Generate Fingerprint & Payload
+        const fingerprint = createFingerprint(deviceId, platform);
 
         const activationData: ActivationData = {
             id: deviceId,
             type,
-            createdAt: now,
+            createdAt,
             expiresAt,
+            gracePeriodEnd,
             fingerprint,
+            v: TOKEN_VERSION,
         };
 
-        const signedPayload = generatePayload(
-            activationData,
-            secret
-        );
+        const secret = process.env.ACTIVATION_SECRET;
+        if (!secret) throw new Error("Missing ACTIVATION_SECRET");
 
-        // --------------------------------------------------------------------
-        // Save registration
-        // --------------------------------------------------------------------
+        const signedPayload = generateSignedPayload(activationData, secret);
 
-        const registrationRef = adminDb
-            .collection("registrations")
-            .doc(deviceId);
+        // 6. Update Firestore
+        await regRef.set({
+            deviceId,
+            type,
+            status: "active",
+            identity: identity ?? null,
+            channel: channel ?? null,
+            fingerprint,
+            createdAt,
+            expiresAt,
+            gracePeriodEnd,
+            lastVerifiedAt: now,
+            appVersion: appVersion ?? null,
+            platform,
+            updatedAt: now,
+            tokenVersion: TOKEN_VERSION,
+        }, { merge: true });
 
-        const existing = await registrationRef.get();
-
-        // --------------------------------------------------------------------
-        // Optional guest trial protection
-        // --------------------------------------------------------------------
-
-        if (existing.exists) {
-            const existingData = existing.data();
-
-            // Prevent unlimited guest resets
-            if (
-                existingData?.type === "guest" &&
-                type === "guest"
-            ) {
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error:
-                            "Guest trial already used on this device",
-                    },
-                    { status: 403 }
-                );
-            }
-        }
-
-        // --------------------------------------------------------------------
-        // Save registration document
-        // --------------------------------------------------------------------
-
-        await registrationRef.set(
-            {
-                deviceId,
-
-                type,
-
-                status: "active",
-
-                identity: identity ?? null,
-                channel: channel ?? null,
-
-                fingerprint,
-
-                createdAt: now,
-                expiresAt,
-
-                lastVerifiedAt: now,
-                gracePeriodEnd,
-
-                appVersion: appVersion ?? null,
-                platform: platform ?? null,
-
-                updatedAt: now,
-            },
-            { merge: true }
-        );
-
-        // --------------------------------------------------------------------
-        // Response
-        // --------------------------------------------------------------------
-
+        // 7. Response
         return NextResponse.json({
             success: true,
-
             payload: signedPayload,
-
-            verifiedAt: now,
-
             gracePeriodEnd,
-
-            package: {
-                type,
-                createdAt: now,
-                expiresAt,
-            },
+            expiresAt,
+            type,
         });
-    } catch (error) {
-        console.error(
-            "Activation endpoint error:",
-            error
-        );
 
-        return NextResponse.json(
-            {
-                success: false,
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Internal Server Error",
-            },
-            { status: 500 }
-        );
+    } catch (error) {
+        console.error("Activation Error:", error);
+        return NextResponse.json({
+            success: false,
+            error: process.env.NODE_ENV === "production" ? "Activation failed" : (error instanceof Error ? error.message : "Unknown error")
+        }, { status: 500 });
     }
 }
