@@ -21,8 +21,8 @@ function encode(data: string): string {
 // Node.js server-compatible SHA256 signature (replaces Expo's Crypto module)
 function createSignature(payload: string, secret: string): string {
     return crypto
-        .createHash("sha256")
-        .update(payload + secret)
+        .createHmac("sha256", secret)
+        .update(payload)
         .digest("hex");
 }
 
@@ -71,6 +71,7 @@ export async function POST(request: Request) {
 
         // 3. Determine user type: account (has identity+channel) or guest
         const isAccount = !!(identity && channel);
+        // ... if account validate if otp is verified...
         const type: "account" | "guest" = isAccount ? "account" : "guest";
 
         // 4. Set up timestamps
