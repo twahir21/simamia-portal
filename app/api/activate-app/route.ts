@@ -70,11 +70,12 @@ export async function POST(request: Request) {
 
         // 1. Validation
         const schema = z.object({
-            deviceId: z.string().min(10),
+            deviceId: z.string().min(4),
             identity: z.string().optional(),
             channel: z.enum(["phone", "email"]).optional(),
-            appVersion: z.string().optional(),
+            appVersion: z.string(),
             platform: z.enum(["ios", "android", "windows", "macos", "web"]),
+            isGuest: z.boolean()
         });
 
         const validation = schema.safeParse(body);
@@ -82,7 +83,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: validation.error.message }, { status: 400 });
         }
 
-        const { deviceId, identity, channel, appVersion, platform } = validation.data;
+        const { deviceId, identity, channel, appVersion, platform, isGuest } = validation.data;
+
+        console.log("data received: ", deviceId, identity, channel, appVersion, platform, isGuest)
         const now = Date.now();
 
         

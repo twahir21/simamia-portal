@@ -54,34 +54,33 @@ export async function POST(request: Request) {
     const now = new Date();
 
     // --- Security Check 1: Progressive Device Lockout ---
-    if (deviceLockRef) {
-      const deviceLockDoc = await deviceLockRef.get();
-      if (deviceLockDoc.exists) {
-        const lockData = deviceLockDoc.data();
-        const failedAttempts = lockData?.failedAttempts || 0;
-        const lastFailedAt = lockData?.lastFailedAt?.toDate();
+    const deviceLockDoc = await deviceLockRef.get();
+    
+    if (deviceLockDoc.exists) {
+      const lockData = deviceLockDoc.data();
+      const failedAttempts = lockData?.failedAttempts || 0;
+      const lastFailedAt = lockData?.lastFailedAt?.toDate();
 
-        // If user has failed attempts, calculate progressive cooldown
-        if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS && lastFailedAt) {
-          // Determine tier: index is based on how many intervals of MAX_VERIFY_ATTEMPTS have passed
-          const tierIndex = Math.min(
-            Math.floor(failedAttempts / CONFIG.MAX_VERIFY_ATTEMPTS) - 1,
-            CONFIG.LOCKOUT_TIERS.length - 1
+      // If user has failed attempts, calculate progressive cooldown
+      if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS && lastFailedAt) {
+        // Determine tier: index is based on how many intervals of MAX_VERIFY_ATTEMPTS have passed
+        const tierIndex = Math.min(
+          Math.floor(failedAttempts / CONFIG.MAX_VERIFY_ATTEMPTS) - 1,
+          CONFIG.LOCKOUT_TIERS.length - 1
+        );
+        const lockWindowMs = CONFIG.LOCKOUT_TIERS[tierIndex];
+        const unlockAt = lastFailedAt.getTime() + lockWindowMs;
+
+        if (now.getTime() < unlockAt) {
+          const retryAfter = Math.ceil((unlockAt - now.getTime()) / 1000);
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Too many failed attempts. Device temporarily locked.",
+              retryAfter, // Time remaining in seconds
+            },
+            { status: 429 }
           );
-          const lockWindowMs = CONFIG.LOCKOUT_TIERS[tierIndex];
-          const unlockAt = lastFailedAt.getTime() + lockWindowMs;
-
-          if (now.getTime() < unlockAt) {
-            const retryAfter = Math.ceil((unlockAt - now.getTime()) / 1000);
-            return NextResponse.json(
-              {
-                success: false,
-                error: "Too many failed attempts. Device temporarily locked.",
-                retryAfter, // Time remaining in seconds
-              },
-              { status: 429 }
-            );
-          }
         }
       }
     }
