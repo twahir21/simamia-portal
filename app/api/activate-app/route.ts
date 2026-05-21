@@ -75,7 +75,7 @@ export async function POST(request: Request) {
             channel: z.enum(["phone", "email"]).optional(),
             appVersion: z.string(),
             platform: z.enum(["ios", "android", "windows", "macos", "web"]),
-            isGuest: z.boolean()
+            isGuest: z.boolean() // Explicit flag from client
         });
 
         const validation = schema.safeParse(body);
@@ -84,45 +84,57 @@ export async function POST(request: Request) {
         }
 
         const { deviceId, identity, channel, appVersion, platform, isGuest } = validation.data;
-
-        console.log("data received: ", deviceId, identity, channel, appVersion, platform, isGuest)
         const now = Date.now();
 
-        
-
-        // 2. Determine Type & Validate Account Status
-        let type: "guest" | "account" = "guest";
+        // 2. Determine Type based on explicit isGuest flag
+        // Guest mode: no OTP required. Account mode: requires OTP verification.
+        const type: "guest" | "account" = isGuest ? "guest" : "account";
 
         // Account activation requires OTP verification
-        if (identity && channel) {
-
-            const accountKey = `${channel}:${identity}`;
-
-            const verificationRef = adminDb
-                .collection("verified_sessions")
-                .doc(accountKey);
-
-            const verificationSnap = await verificationRef.get();
-
-            if (!verificationSnap.exists) {
+        if (type === "account") {
+            // Validate required fields for account type
+            if (!identity || !channel) {
                 return NextResponse.json({
                     success: false,
-                    error: "OTP verification required"
-                }, { status: 403 });
+                    error: "Identity and channel are required for account activation"
+                }, { status: 400 });
             }
 
-            const verificationData = verificationSnap.data();
+            const docId = `${channel}:${identity}`;
+            const otpRef = adminDb.collection("otps").doc(docId);
+            const doc = await otpRef.get();
 
-            if (!verificationData?.verified) {
+            if (!doc.exists) {
+                return NextResponse.json(
+                    { success: false, verified: false, message: "No verification record found." },
+                    { status: 200 }
+                );
+            }
+
+            const data = doc.data();
+
+            // Check if the OTP document flags show a successful completion
+            if (data?.isUsed && data?.verifiedAt) {
+                const verifiedAt = data.verifiedAt.toDate();
+
+                // Optional: Add expiration check for verification (e.g., must be verified within last 24h)
+                const verificationExpiry = 24 * 60 * 60 * 1000;
+                if (now - verifiedAt.getTime() > verificationExpiry) {
+                    return NextResponse.json({
+                        success: false,
+                        error: "Verification expired. Please request a new OTP."
+                    }, { status: 403 });
+                }
+
+                // Optionally delete the OTP record after successful use (one-time token)
+                await otpRef.delete();
+            } else {
                 return NextResponse.json({
                     success: false,
-                    error: "OTP verification required"
+                    verified: false,
+                    message: "OTP not yet verified. Please complete verification first."
                 }, { status: 403 });
             }
-
-            await verificationRef.delete();
-
-            type = "account";
         }
 
         // 3. Check Existing Registration
@@ -133,7 +145,6 @@ export async function POST(request: Request) {
         // SECURITY: Prevent Guest -> Guest reset abuse
         if (existingData?.type === "guest" && type === "guest") {
             if (existingData.expiresAt > now) {
-
                 const activationData: ActivationData = {
                     id: deviceId,
                     type: existingData.type,
@@ -145,10 +156,7 @@ export async function POST(request: Request) {
                 };
 
                 const secret = process.env.ACTIVATION_SECRET!;
-                const signedPayload = generateSignedPayload(
-                    activationData,
-                    secret
-                );
+                const signedPayload = generateSignedPayload(activationData, secret);
 
                 return NextResponse.json({
                     success: true,
@@ -167,12 +175,14 @@ export async function POST(request: Request) {
             }, { status: 403 });
         }
 
-        // Add to upgrade block
-        if (existingData?.identity && existingData.identity !== identity) {
-            return NextResponse.json({
-                success: false,
-                error: "This device is already linked to a different account"
-            }, { status: 403 });
+        // SECURITY: Prevent account hijacking - device already linked to different account
+        if (existingData?.identity && existingData.type === "account" && type === "account") {
+            if (existingData.identity !== identity) {
+                return NextResponse.json({
+                    success: false,
+                    error: "This device is already linked to a different account"
+                }, { status: 403 });
+            }
         }
 
         // 4. Calculate Expiry Logic
@@ -188,15 +198,15 @@ export async function POST(request: Request) {
                 const remainingGuestTime = Math.max(0, existingData.expiresAt - now);
                 expiresAt = now + PACKAGES.account.duration + remainingGuestTime;
                 gracePeriodEnd = now + PACKAGES.account.grace;
-                createdAt = existingData.createdAt; // Keep original
+                createdAt = existingData.createdAt; // Keep original registration date
             }
             // If same type (Renewal)
             else if (existingData.type === type) {
-                expiresAt = existingData.expiresAt;
-                gracePeriodEnd = now + PACKAGES[type].grace;
+                expiresAt = existingData.expiresAt; // Keep existing expiry (no auto-extension)
+                gracePeriodEnd = now + PACKAGES[type].grace; // Refresh grace period
                 createdAt = existingData.createdAt;
             }
-            // Downgrade (Account to Guest? Unlikely but handle it)
+            // Downgrade (Account to Guest - edge case)
             else {
                 expiresAt = now + PACKAGES[type].duration;
                 gracePeriodEnd = now + PACKAGES[type].grace;

@@ -39,18 +39,6 @@ export async function GET(request: Request) {
         // Check if the OTP document flags show a successful completion
         if (data?.isUsed && data?.verifiedAt) {
             const verifiedAt = data.verifiedAt.toDate();
-            const now = new Date();
-
-            // Optional: Ensure the verification didn't happen too long ago (e.g., within the last 5 minutes)
-            const maxSessionAgeMs = 5 * 60 * 1000;
-            const isExpired = (now.getTime() - verifiedAt.getTime()) > maxSessionAgeMs;
-
-            if (isExpired) {
-                return NextResponse.json(
-                    { success: true, verified: false, message: "Verification session has expired." },
-                    { status: 200 }
-                );
-            }
 
             return NextResponse.json(
                 {
