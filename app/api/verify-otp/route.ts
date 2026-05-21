@@ -140,62 +140,71 @@ export async function POST(request: Request) {
       .digest("hex");
 
 
-            if (data.otpHash !== incomingHash) {
-    
-                // Track failed attempt on the individual OTP doc
-                await otpRef.update({
-                    attemptCount: admin.firestore.FieldValue.increment(1),
-                    lastAttemptAt: admin.firestore.FieldValue.serverTimestamp(),
-                });
-    
-                // Log failure to device profile
-                await deviceLockRef.set({
-                    failedAttempts: admin.firestore.FieldValue.increment(1),
-                    lastFailedAt: admin.firestore.FieldValue.serverTimestamp(),
-                }, { merge: true });
-    
-                const updatedDeviceDoc = await deviceLockRef.get();
-                const currentDeviceFails = updatedDeviceDoc.data()?.failedAttempts || 1;
-    
-                const remainder = currentDeviceFails % CONFIG.MAX_VERIFY_ATTEMPTS;
-                const remainingAttempts = remainder === 0 ? 0 : CONFIG.MAX_VERIFY_ATTEMPTS - remainder;
-    
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: "Invalid or expired OTP",
-                        message: remainingAttempts > 0
-                            ? `${remainingAttempts} attempt${remainingAttempts === 1 ? "" : "s"} remaining before lock.`
-                            : "Device locked due to excessive failed entries.",
-                    },
-                    { status: 400 }
-                );
-            }
-    
-            // --- 4. SUCCESS: Use Atomic Batch Operations ---
-            const batch = adminDb.batch();
-    
-            batch.update(otpRef, {
-                isUsed: true,
-                verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-                attemptCount: 0,
-            });
-    
-            // Clear structural device limit penalties on successful login
-            batch.delete(deviceLockRef);
-    
-            const logRef = adminDb.collection("otp_logs").doc();
-            batch.set(logRef, {
-                identity,
-                channel,
-                deviceId,
-                action: "verify_success",
-                timestamp: admin.firestore.FieldValue.serverTimestamp(),
-            });
-    
-            await batch.commit();
-    
-            return NextResponse.json({ success: true, message: "OTP verified successfully", verified: true }, { status: 200 });
+    if (data.otpHash !== incomingHash) {
+
+      // Track failed attempt on the individual OTP doc
+      await otpRef.update({
+        attemptCount: admin.firestore.FieldValue.increment(1),
+        lastAttemptAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // Log failure to device profile
+      await deviceLockRef.set({
+        failedAttempts: admin.firestore.FieldValue.increment(1),
+        lastFailedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+
+      const updatedDeviceDoc = await deviceLockRef.get();
+      const currentDeviceFails = updatedDeviceDoc.data()?.failedAttempts || 1;
+
+      const remainder = currentDeviceFails % CONFIG.MAX_VERIFY_ATTEMPTS;
+      const remainingAttempts = remainder === 0 ? 0 : CONFIG.MAX_VERIFY_ATTEMPTS - remainder;
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid or expired OTP",
+          message: remainingAttempts > 0
+            ? `${remainingAttempts} attempt${remainingAttempts === 1 ? "" : "s"} remaining before lock.`
+            : "Device locked due to excessive failed entries.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // --- 4. SUCCESS: Use Atomic Batch Operations ---
+    const batch = adminDb.batch();
+
+    batch.update(otpRef, {
+      isUsed: true,
+      verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+      attemptCount: 0,
+    });
+
+    // Clear structural device limit penalties on successful login
+    batch.delete(deviceLockRef);
+
+    const logRef = adminDb.collection("otp_logs").doc();
+    batch.set(logRef, {
+      identity,
+      channel,
+      deviceId,
+      action: "verify_success",
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    await batch.commit();
+
+    // save session
+    await adminDb.collection("verified_sessions").doc(identity).set({
+      identity,
+      channel,
+      verified: true,
+      verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+      deviceId,
+    }, { merge: true });
+
+    return NextResponse.json({ success: true, message: "OTP verified successfully", verified: true }, { status: 200 });
 
 
   } catch (error) {

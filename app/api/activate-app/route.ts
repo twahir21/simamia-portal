@@ -90,28 +90,36 @@ export async function POST(request: Request) {
         // 2. Determine Type & Validate Account Status
         let type: "guest" | "account" = "guest";
 
+        // Account activation requires OTP verification
         if (identity && channel) {
-            // CHECK IF ACCOUNT IS REAL AND VERIFIED
-            const userRef = adminDb.collection("users").doc(identity);
-            const userSnap = await userRef.get();
 
-            if (userSnap.exists) {
-                const userData = userSnap.data();
-                // Assuming you have a 'verified' or 'active' flag in your user doc
-                if (userData?.verified || userData?.status === "active") {
-                    type = "account";
-                } else {
-                    return NextResponse.json({
-                        success: false,
-                        error: "Account not verified. Please complete verification."
-                    }, { status: 403 });
-                }
-            } else {
+            const accountKey = `${channel}:${identity}`;
+
+            const verificationRef = adminDb
+                .collection("verified_sessions")
+                .doc(accountKey);
+
+            const verificationSnap = await verificationRef.get();
+
+            if (!verificationSnap.exists) {
                 return NextResponse.json({
                     success: false,
-                    error: "Account not found."
-                }, { status: 404 });
+                    error: "OTP verification required"
+                }, { status: 403 });
             }
+
+            const verificationData = verificationSnap.data();
+
+            if (!verificationData?.verified) {
+                return NextResponse.json({
+                    success: false,
+                    error: "OTP verification required"
+                }, { status: 403 });
+            }
+
+            await verificationRef.delete();
+
+            type = "account";
         }
 
         // 3. Check Existing Registration
@@ -121,16 +129,34 @@ export async function POST(request: Request) {
 
         // SECURITY: Prevent Guest -> Guest reset abuse
         if (existingData?.type === "guest" && type === "guest") {
-            // If the guest trial is still active, just return existing info
             if (existingData.expiresAt > now) {
+
+                const activationData: ActivationData = {
+                    id: deviceId,
+                    type: existingData.type,
+                    createdAt: existingData.createdAt,
+                    expiresAt: existingData.expiresAt,
+                    gracePeriodEnd: existingData.gracePeriodEnd,
+                    fingerprint: existingData.fingerprint,
+                    v: TOKEN_VERSION,
+                };
+
+                const secret = process.env.ACTIVATION_SECRET!;
+                const signedPayload = generateSignedPayload(
+                    activationData,
+                    secret
+                );
+
                 return NextResponse.json({
                     success: true,
                     message: "Trial already active",
+                    payload: signedPayload,
                     gracePeriodEnd: existingData.gracePeriodEnd,
-                    expiresAt: existingData.expiresAt
+                    expiresAt: existingData.expiresAt,
+                    type: existingData.type,
                 });
             }
-            // If trial expired, block them from getting a new free trial on same device
+
             return NextResponse.json({
                 success: false,
                 error: "Guest trial expired. Please create an account to continue.",
@@ -213,6 +239,7 @@ export async function POST(request: Request) {
             updatedAt: now,
             tokenVersion: TOKEN_VERSION,
         }, { merge: true });
+
 
         // 7. Response
         return NextResponse.json({
