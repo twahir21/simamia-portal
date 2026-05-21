@@ -28,6 +28,10 @@ const PACKAGES = {
         duration: 14 * 24 * 60 * 60 * 1000,  // 14 days
         grace: 7 * 24 * 60 * 60 * 1000,       // 7 days offline buffer
     },
+    guestToAccount: {
+        duration: 7 * 24 * 60 * 60 * 1000,   // 7 days
+        grace: 3 * 24 * 60 * 60 * 1000,       // 3 days offline buffer
+    },
 };
 
 // ============================================================================
@@ -190,8 +194,8 @@ export async function POST(request: Request) {
                 const remainingGuestTime = Math.max(0, existingData.expiresAt - now);
                 
                 // New expiry is: right now + full account allowance + whatever they had left on guest
-                expiresAt = now + PACKAGES.account.duration + remainingGuestTime;
-                gracePeriodEnd = now + PACKAGES.account.grace;
+                expiresAt = now + PACKAGES.guestToAccount.duration + remainingGuestTime;
+                gracePeriodEnd = now + PACKAGES.guestToAccount.grace;
                 createdAt = existingData.createdAt; 
             }
             // CASE B: Existing Account Renewal / Re-sync
