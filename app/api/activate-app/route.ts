@@ -26,11 +26,11 @@ const TOKEN_VERSION = 1; // Increment this to invalidate all existing tokens
 const PACKAGES = {
     guest: {
         duration: 7 * 24 * 60 * 60 * 1000, // 7 days
-        grace: 24 * 60 * 60 * 1000,        // 1 day offline buffer
+        grace: 3 * 24 * 60 * 60 * 1000,        // 3 days offline buffer
     },
     account: {
         duration: 14 * 24 * 60 * 60 * 1000, // 14 days
-        grace: 72 * 60 * 60 * 1000,         // 3 days offline buffer
+        grace: 7 * 24 * 60 * 60 * 1000,         // 7 days offline buffer
     },
 };
 
