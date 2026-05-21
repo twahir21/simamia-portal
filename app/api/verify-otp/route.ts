@@ -195,15 +195,6 @@ export async function POST(request: Request) {
 
     await batch.commit();
 
-    // save session
-    await adminDb.collection("verified_sessions").doc(identity).set({
-      identity,
-      channel,
-      verified: true,
-      verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-      deviceId,
-    }, { merge: true });
-
     return NextResponse.json({ success: true, message: "OTP verified successfully", verified: true }, { status: 200 });
 
 
