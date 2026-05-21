@@ -48,7 +48,7 @@ export default function ContactHelp () {
                       <div className="text-xs text-purple-200">
                         Msaada wa barua pepe
                       </div>
-                      <span className="font-medium">twahirsudy3@gmail.com</span>
+                      <span className="font-medium">huduma@simamia.co.tz</span>
                     </div>
                   </motion.div>
 

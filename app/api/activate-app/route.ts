@@ -4,7 +4,7 @@ import z from "zod";
 import crypto from "crypto";
 
 // ============================================================================
-// Types
+// Types & Config
 // ============================================================================
 
 interface ActivationData {
@@ -14,23 +14,19 @@ interface ActivationData {
     expiresAt: number;
     gracePeriodEnd: number;
     fingerprint: string;
-    v: number; // Token version for revocation
+    v: number;
 }
 
-// ============================================================================
-// Config
-// ============================================================================
-
-const TOKEN_VERSION = 1; // Increment this to invalidate all existing tokens
+const TOKEN_VERSION = 1;
 
 const PACKAGES = {
     guest: {
-        duration: 7 * 24 * 60 * 60 * 1000, // 7 days
-        grace: 3 * 24 * 60 * 60 * 1000,        // 3 days offline buffer
+        duration: 7 * 24 * 60 * 60 * 1000,   // 7 days
+        grace: 3 * 24 * 60 * 60 * 1000,       // 3 days offline buffer
     },
     account: {
-        duration: 14 * 24 * 60 * 60 * 1000, // 14 days
-        grace: 7 * 24 * 60 * 60 * 1000,         // 7 days offline buffer
+        duration: 14 * 24 * 60 * 60 * 1000,  // 14 days
+        grace: 7 * 24 * 60 * 60 * 1000,       // 7 days offline buffer
     },
 };
 
@@ -43,10 +39,7 @@ function encode(data: string): string {
 }
 
 function createSignature(payload: string, secret: string): string {
-    return crypto
-        .createHmac("sha256", secret)
-        .update(payload)
-        .digest("hex");
+    return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 }
 
 function generateSignedPayload(data: ActivationData, secret: string): string {
@@ -75,7 +68,7 @@ export async function POST(request: Request) {
             channel: z.enum(["phone", "email"]).optional(),
             appVersion: z.string(),
             platform: z.enum(["ios", "android", "windows", "macos", "web"]),
-            isGuest: z.boolean() // Explicit flag from client
+            isGuest: z.boolean()
         });
 
         const validation = schema.safeParse(body);
@@ -85,19 +78,37 @@ export async function POST(request: Request) {
 
         const { deviceId, identity, channel, appVersion, platform, isGuest } = validation.data;
         const now = Date.now();
+        const incomingType: "guest" | "account" = isGuest ? "guest" : "account";
 
-        // 2. Determine Type based on explicit isGuest flag
-        // Guest mode: no OTP required. Account mode: requires OTP verification.
-        const type: "guest" | "account" = isGuest ? "guest" : "account";
+        // 2. Fetch Existing Registration First to Make Security Decisions
+        const regRef = adminDb.collection("registrations").doc(deviceId);
+        const existingSnap = await regRef.get();
+        const existingData = existingSnap.exists ? existingSnap.data() : null;
 
-        // Account activation requires OTP verification
-        if (type === "account") {
-            // Validate required fields for account type
+        // CRITICAL SECURITY FIX: Strict one-way upgrade path
+        // If they are already an account, they cannot downgrade/request a guest token.
+        if (existingData?.type === "account" && incomingType === "guest") {
+            return NextResponse.json({
+                success: false,
+                error: "This device is already linked to an account. Guest mode is disabled."
+            }, { status: 403 });
+        }
+
+        // 3. OTP Verification for Account Types
+        if (incomingType === "account") {
             if (!identity || !channel) {
                 return NextResponse.json({
                     success: false,
                     error: "Identity and channel are required for account activation"
                 }, { status: 400 });
+            }
+
+            // SECURITY: Prevent account hijacking - device already linked to DIFFERENT account
+            if (existingData?.type === "account" && existingData.identity && existingData.identity !== identity) {
+                return NextResponse.json({
+                    success: false,
+                    error: "This device is already linked to a different account"
+                }, { status: 403 });
             }
 
             const docId = `${channel}:${identity}`;
@@ -111,23 +122,19 @@ export async function POST(request: Request) {
                 );
             }
 
-            const data = doc.data();
+            const otpData = doc.data();
 
-            // Check if the OTP document flags show a successful completion
-            if (data?.isUsed && data?.verifiedAt) {
-                const verifiedAt = data.verifiedAt.toDate();
-
-                // Optional: Add expiration check for verification (e.g., must be verified within last 24h)
+            if (otpData?.isUsed && otpData?.verifiedAt) {
+                const verifiedAt = otpData.verifiedAt.toDate();
                 const verificationExpiry = 24 * 60 * 60 * 1000;
+                
                 if (now - verifiedAt.getTime() > verificationExpiry) {
                     return NextResponse.json({
                         success: false,
                         error: "Verification expired. Please request a new OTP."
                     }, { status: 403 });
                 }
-
-                // Optionally delete the OTP record after successful use (one-time token)
-                await otpRef.delete();
+                await otpRef.delete(); // Single-use token enforcement
             } else {
                 return NextResponse.json({
                     success: false,
@@ -137,14 +144,10 @@ export async function POST(request: Request) {
             }
         }
 
-        // 3. Check Existing Registration
-        const regRef = adminDb.collection("registrations").doc(deviceId);
-        const existingSnap = await regRef.get();
-        const existingData = existingSnap.exists ? existingSnap.data() : null;
-
-        // SECURITY: Prevent Guest -> Guest reset abuse
-        if (existingData?.type === "guest" && type === "guest") {
+        // 4. Guest-to-Guest Reset Abuse Guard
+        if (existingData?.type === "guest" && incomingType === "guest") {
             if (existingData.expiresAt > now) {
+                // Return existing valid guest token payload
                 const activationData: ActivationData = {
                     id: deviceId,
                     type: existingData.type,
@@ -175,54 +178,39 @@ export async function POST(request: Request) {
             }, { status: 403 });
         }
 
-        // SECURITY: Prevent account hijacking - device already linked to different account
-        if (existingData?.identity && existingData.type === "account" && type === "account") {
-            if (existingData.identity !== identity) {
-                return NextResponse.json({
-                    success: false,
-                    error: "This device is already linked to a different account"
-                }, { status: 403 });
-            }
-        }
-
-        // 4. Calculate Expiry Logic
+        // 5. Advanced Expiry Calculation Logic
         let expiresAt: number;
         let gracePeriodEnd: number;
         let createdAt: number = now;
 
         if (existingData) {
-            // CASE A: User exists. Are they upgrading? Or Renewing?
-
-            // If upgrading from Guest to Account
-            if (existingData.type === "guest" && type === "account") {
+            // CASE A: Upgrading from Guest to Account
+            if (existingData.type === "guest" && incomingType === "account") {
+                // Calculate remaining time left on the guest trial
                 const remainingGuestTime = Math.max(0, existingData.expiresAt - now);
+                
+                // New expiry is: right now + full account allowance + whatever they had left on guest
                 expiresAt = now + PACKAGES.account.duration + remainingGuestTime;
                 gracePeriodEnd = now + PACKAGES.account.grace;
-                createdAt = existingData.createdAt; // Keep original registration date
+                createdAt = existingData.createdAt; 
             }
-            // If same type (Renewal)
-            else if (existingData.type === type) {
-                expiresAt = existingData.expiresAt; // Keep existing expiry (no auto-extension)
-                gracePeriodEnd = now + PACKAGES[type].grace; // Refresh grace period
+            // CASE B: Existing Account Renewal / Re-sync
+            else {
+                expiresAt = existingData.expiresAt; // Retain current expiry (controlled via payment routes, not login)
+                gracePeriodEnd = now + PACKAGES.account.grace; // Re-extend the offline buffer
                 createdAt = existingData.createdAt;
             }
-            // Downgrade (Account to Guest - edge case)
-            else {
-                expiresAt = now + PACKAGES[type].duration;
-                gracePeriodEnd = now + PACKAGES[type].grace;
-            }
         } else {
-            // CASE B: New Device
-            expiresAt = now + PACKAGES[type].duration;
-            gracePeriodEnd = now + PACKAGES[type].grace;
+            // CASE C: Brand New Device (First time hitting your ecosystem)
+            expiresAt = now + PACKAGES[incomingType].duration;
+            gracePeriodEnd = now + PACKAGES[incomingType].grace;
         }
 
-        // 5. Generate Fingerprint & Payload
+        // 6. Token Generation
         const fingerprint = createFingerprint(deviceId, platform);
-
         const activationData: ActivationData = {
             id: deviceId,
-            type,
+            type: incomingType,
             createdAt,
             expiresAt,
             gracePeriodEnd,
@@ -235,13 +223,13 @@ export async function POST(request: Request) {
 
         const signedPayload = generateSignedPayload(activationData, secret);
 
-        // 6. Update Firestore
+        // 7. Sync State back to Database
         await regRef.set({
             deviceId,
-            type,
+            type: incomingType,
             status: "active",
-            identity: identity ?? null,
-            channel: channel ?? null,
+            identity: identity ?? (existingData?.identity || null),
+            channel: channel ?? (existingData?.channel || null),
             fingerprint,
             createdAt,
             expiresAt,
@@ -253,14 +241,12 @@ export async function POST(request: Request) {
             tokenVersion: TOKEN_VERSION,
         }, { merge: true });
 
-
-        // 7. Response
         return NextResponse.json({
             success: true,
             payload: signedPayload,
             gracePeriodEnd,
             expiresAt,
-            type,
+            type: incomingType,
         });
 
     } catch (error) {
