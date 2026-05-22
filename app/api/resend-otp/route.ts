@@ -4,6 +4,7 @@ import admin from "firebase-admin";
 import { adminDb } from "@/firebase/admin.firebase";
 import crypto from "crypto";
 import { SendEmailOTP } from "@/logic/email.otp";
+import { sendSMSOTP } from "@/logic/sms.otp";
 
 // 1. Validation Schema
 const resendSchema = z.object({
@@ -162,11 +163,41 @@ export async function POST(request: Request) {
         );
 
         // Send OTP (mocked - integrate your provider)
-        console.log(`[RESEND] OTP of ${identity} via ${channel} | OTP:${otp}...`);
+        if (channel === 'phone') {
+            try {
+                const result = await sendSMSOTP(identity, otp);
 
-        // TODO: Integrate SMS/Email service
-        // if (channel === 'phone') await sendSMS(identity, `Your code: ${otp}`);
-        if (channel === 'email') await SendEmailOTP(identity, otp);
+                // Safely extract the 200 code from the meta tag, or default to 200
+                const httpStatus = result?.meta?.http_code || 200;
+
+                return Response.json(
+                    {
+                        success: true,
+                        message: "OTP sent successfully",
+                        data: result
+                    },
+                    { status: httpStatus }
+                );
+
+            } catch (error) {
+                // This catches numbers that failed validation OR API errors
+                return Response.json(
+                    {
+                        success: false,
+                        message: error instanceof Error ? error.message : "Failed to send OTP verification code."
+                    },
+                    { status: 400 } // Bad Request
+                );
+            }
+        }
+        
+        else if (channel === 'email') {
+            const result = await SendEmailOTP(identity, otp);
+            
+            return Response.json(result, {
+                status: result.status,
+            });
+        }
 
         // Audit log
         await adminDb.collection("otp_logs").add({

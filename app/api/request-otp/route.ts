@@ -4,6 +4,7 @@ import admin from "firebase-admin";
 import crypto from "crypto";
 import { adminDb } from "@/firebase/admin.firebase";
 import { SendEmailOTP } from "@/logic/email.otp";
+import { sendSMSOTP } from "@/logic/sms.otp";
 
 
 // 1. Define Validation Schema with Zod
@@ -102,11 +103,35 @@ export async function POST(request: Request) {
         });
 
         // 6. Send OTP (Mocked)
-        console.log(`[${channel.toUpperCase()}] Sending OTP ${otp} to ${identity}`);
+        if (channel === 'phone') {
+            try {
+                const result = await sendSMSOTP(identity, otp);
 
-        // TODO: Integrate Twilio/SendGrid here
-        // if (channel === 'phone') await sendPhone(identity, otp);
-        if (channel === 'email') {
+                // Safely extract the 200 code from the meta tag, or default to 200
+                const httpStatus = result?.meta?.http_code || 200;
+
+                return Response.json(
+                    {
+                        success: true,
+                        message: "OTP sent successfully",
+                        data: result
+                    },
+                    { status: httpStatus }
+                );
+
+            } catch (error) {
+                // This catches numbers that failed validation OR API errors
+                return Response.json(
+                    {
+                        success: false,
+                        message: error instanceof Error ? error.message : "Failed to send OTP verification code."
+                    },
+                    { status: 400 } // Bad Request
+                );
+            }
+        }
+
+        else if (channel === 'email') {
             const result = await SendEmailOTP(identity, otp);
             
             return Response.json(result, {
