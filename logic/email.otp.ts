@@ -23,7 +23,7 @@ export async function SendEmailOTP(identity: string, email: string) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'Simamia APP <huduma@simamia.co.tz>',
+      from: 'Simamia APP <noreply@contact.simamia.co.tz>',
       to: [email],
       subject: 'OTP - Verification',
       react: EmailTemplate({ identity, otp: await createOTP(email) }),
