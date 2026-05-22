@@ -3,6 +3,7 @@ import { z } from "zod";
 import admin from "firebase-admin";
 import crypto from "crypto";
 import { adminDb } from "@/firebase/admin.firebase";
+import { SendEmailOTP } from "@/logic/email.otp";
 
 
 // 1. Define Validation Schema with Zod
@@ -104,8 +105,8 @@ export async function POST(request: Request) {
         console.log(`[${channel.toUpperCase()}] Sending OTP ${otp} to ${identity}`);
 
         // TODO: Integrate Twilio/SendGrid here
-        // if (channel === 'phone') await sendSMS(identity, otp);
-        // if (channel === 'email') await sendEmail(identity, otp);
+        // if (channel === 'phone') await sendPhone(identity, otp);
+        if (channel === 'email') await SendEmailOTP(identity, otp);
 
         return NextResponse.json(
             {

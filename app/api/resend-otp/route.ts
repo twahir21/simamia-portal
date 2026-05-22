@@ -3,6 +3,7 @@ import { z } from "zod";
 import admin from "firebase-admin";
 import { adminDb } from "@/firebase/admin.firebase";
 import crypto from "crypto";
+import { SendEmailOTP } from "@/logic/email.otp";
 
 // 1. Validation Schema
 const resendSchema = z.object({
@@ -165,7 +166,7 @@ export async function POST(request: Request) {
 
         // TODO: Integrate SMS/Email service
         // if (channel === 'phone') await sendSMS(identity, `Your code: ${otp}`);
-        // else if (channel === 'email') await sendEmail(identity, `Your code: ${otp}`);
+        if (channel === 'email') await SendEmailOTP(identity, otp);
 
         // Audit log
         await adminDb.collection("otp_logs").add({

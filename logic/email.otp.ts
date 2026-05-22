@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API)
 
 const DAILY_LIMIT = 3
 
-export async function SendOTP(shopName: string, email: string) {
+export async function SendEmailOTP(identity: string, email: string) {
   try {
     
     const today = new Date().toISOString().slice(0,10)
@@ -23,10 +23,10 @@ export async function SendOTP(shopName: string, email: string) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'Simamia APP <noreply@contact.simamia.co.tz>',
+      from: 'Simamia APP <huduma@simamia.co.tz>',
       to: [email],
       subject: 'OTP - Verification',
-      react: EmailTemplate({ shopName: shopName, otp: await createOTP(email) }),
+      react: EmailTemplate({ identity, otp: await createOTP(email) }),
     })
 
     if (error) {

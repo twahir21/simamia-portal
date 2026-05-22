@@ -1,105 +1,100 @@
 interface EmailTemplateProps {
-  shopName: string
-  otp: string
+  otp: string;
+  identity: string;
 }
 
-export function EmailTemplate({ shopName, otp }: EmailTemplateProps) {
+export function EmailTemplate({identity,  otp }: EmailTemplateProps) {
   return (
     <div style={container}>
-      
       <div style={card}>
-
-        <h2 style={title}>Simamia Security Verification</h2>
-
-        <p style={text}>
-          Hello <strong>{shopName}</strong>,
+        {/* Crucial for Notification Preview: Keeps text short and front-loads the OTP */}
+        <p style={notificationHeader}>
+          Your Simamia App code is <strong>{otp}</strong>. Valid for 2 minutes.
         </p>
 
-        <p style={text}>
-          We received a request to activate <strong>Simamia</strong> on a new Android device.
-          To protect your business data, please confirm this change using the verification code below.
-        </p>
+        <h2 style={title}>Security Verification</h2>
 
-        <div style={otpBox}>
-          {otp}
-        </div>
-
-        <p style={smallText}>
-          This code will expire in <strong>10 minutes</strong>.
-        </p>
+        <div style={otpBox}>{otp}</div>
 
         <p style={text}>
-          If you did not request this change, please ignore this email and secure your account.
+          Use this verification code to complete your action on{" "}
+          <strong>Simamia App</strong> with <strong>{identity}</strong>. To
+          secure your business data, never share this code with anyone.
         </p>
 
         <hr style={divider} />
 
-        <p style={footer}>
-          Simamia Business Management System
-          <br/>
-          Track sales, expenses and profit with confidence.
-        </p>
-
+        <p style={footer}>Simamia App - Business Management System</p>
       </div>
-
     </div>
-  )
+  );
 }
 
+// Light Mode Color Palette (Sky & Slate)
 const container = {
-  backgroundColor: "#f4f6f8",
-  padding: "40px 0",
-  fontFamily: "Arial, Helvetica, sans-serif",
-}
+  backgroundColor: "#f0f9ff", // sky-50
+  padding: "40px 12px",
+  fontFamily: "system-ui, -apple-system, sans-serif",
+};
 
 const card = {
-  maxWidth: "520px",
+  maxWidth: "480px",
   margin: "0 auto",
-  backgroundColor: "#ffffff",
-  borderRadius: "12px",
+  backgroundColor: "#ffffff", // white mode
+  borderRadius: "16px",
   padding: "32px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-}
+  boxShadow:
+    "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+  border: "1px solid #e2e8f0", // slate-200
+};
+
+// Hidden or micro-text at the top ensures this is what the notification grabs first
+const notificationHeader = {
+  fontSize: "14px",
+  color: "#0369a1", // sky-700
+  backgroundColor: "#e0f2fe", // sky-100
+  padding: "10px 14px",
+  borderRadius: "8px",
+  marginBottom: "24px",
+  fontWeight: "500",
+};
 
 const title = {
-  fontSize: "22px",
-  marginBottom: "20px",
-  color: "#111",
-}
-
-const text = {
-  fontSize: "15px",
-  lineHeight: "1.6",
-  color: "#333",
+  fontSize: "20px",
+  fontWeight: "700",
   marginBottom: "16px",
-}
+  color: "#0f172a", // slate-900
+};
 
 const otpBox = {
-  fontSize: "32px",
-  letterSpacing: "8px",
+  fontSize: "36px",
+  letterSpacing: "6px",
   textAlign: "center" as const,
   fontWeight: "bold",
-  padding: "18px",
+  padding: "20px",
   margin: "24px 0",
-  backgroundColor: "#f1f5f9",
-  borderRadius: "8px",
-  color: "#111",
-}
+  backgroundColor: "#f8fafc", // slate-50
+  border: "2px dashed #bae6fd", // sky-200
+  borderRadius: "12px",
+  color: "#0284c7", // sky-600
+};
 
-const smallText = {
-  fontSize: "13px",
-  color: "#555",
-  marginBottom: "20px",
-}
+const text = {
+  fontSize: "14px",
+  lineHeight: "1.5",
+  color: "#475569", // slate-600
+  marginBottom: "16px",
+};
 
 const divider = {
   border: "none",
-  borderTop: "1px solid #eee",
+  borderTop: "1px solid #e2e8f0", // slate-200
   margin: "24px 0",
-}
+};
 
 const footer = {
   fontSize: "12px",
-  color: "#777",
+  color: "#94a3b8", // slate-400
   textAlign: "center" as const,
-}
+  fontWeight: "500",
+};
