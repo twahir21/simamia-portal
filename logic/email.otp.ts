@@ -30,6 +30,7 @@ export async function SendEmailOTP(identity: string, email: string) {
     })
 
     if (error) {
+      console.log("Error in sending email")
       return Response.json({ error }, { status: 500 })
     }
 
