@@ -1,13 +1,13 @@
 import { BRIQ_SMS_LINK } from "@/const/links.const";
 
-function genRandom(length = 11) {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let result = "";
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-}
+// function genRandom(length = 11) {
+//     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+//     let result = "";
+//     for (let i = 0; i < length; i++) {
+//         result += chars.charAt(Math.floor(Math.random() * chars.length));
+//     }
+//     return result;
+// }
 
 /**
  * Sanitizes and validates Tanzania phone numbers to fit Briq API requirements.
@@ -38,10 +38,7 @@ export const sendSMSOTP = async (recipientNumber: string, otpCode: string) => {
         // 1. Sanitize the incoming phone number based on your curl specification
         const sanitizedRecipient = sanitizeTanzanianNumber(recipientNumber);
 
-        const message = `<#> Namba yako ya kuthibitisha Simamia ni: ${otpCode}.
-            Itatumika kwa dakika 5.
-
-            ${genRandom()}`;
+        const message = `Code: ${otpCode}. Namba yako ya kuthibitisha Simamia ni hii. Itatumika kwa dakika 5. Usishiriki nambari hii na mtu yeyote.`;
 
         const options = {
             method: "POST",
