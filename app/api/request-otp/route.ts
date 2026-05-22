@@ -106,7 +106,13 @@ export async function POST(request: Request) {
 
         // TODO: Integrate Twilio/SendGrid here
         // if (channel === 'phone') await sendPhone(identity, otp);
-        if (channel === 'email') await SendEmailOTP(identity, otp);
+        if (channel === 'email') {
+            const result = await SendEmailOTP(identity, otp);
+            
+            return Response.json(result, {
+                status: result.status,
+            });
+        }
 
         return NextResponse.json(
             {

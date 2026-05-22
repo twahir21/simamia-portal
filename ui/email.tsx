@@ -3,7 +3,7 @@ interface EmailTemplateProps {
   identity: string;
 }
 
-export function EmailTemplate({identity,  otp }: EmailTemplateProps) {
+export default function EmailTemplate({identity,  otp }: EmailTemplateProps) {
   return (
     <div style={container}>
       <div style={card}>
