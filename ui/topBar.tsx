@@ -31,7 +31,7 @@ export const TopBar = () => {
           <Link href="/" className="transition-colors hover:text-sky-600">Nyumbani</Link>
           <Link href="/private" className="transition-colors hover:text-sky-600">Akaunti</Link>
           <Link href="/help-center" className="transition-colors hover:text-sky-600">Kituo cha Msaada</Link>
-          <Link href="/apk" className="transition-colors hover:text-sky-600">APK</Link>
+          <Link href="/download" className="transition-colors hover:text-sky-600">Download</Link>
         </nav>
 
         {/* Action Buttons */}

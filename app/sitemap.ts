@@ -18,7 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.8,
         },
         {
-            url: `${baseUrl}/apk`,
+            url: `${baseUrl}/download`,
             lastModified: new Date(),
             changeFrequency: "weekly", // Important for users looking to get the app
             priority: 0.9,
