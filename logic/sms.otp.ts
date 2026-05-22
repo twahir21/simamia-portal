@@ -1,5 +1,14 @@
 import { BRIQ_SMS_LINK } from "@/const/links.const";
 
+function genRandom(length = 11) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
 /**
  * Sanitizes and validates Tanzania phone numbers to fit Briq API requirements.
  * Replaces leading +255 or 0 with 255, and ensures it only starts with 255.
@@ -24,12 +33,15 @@ const sanitizeTanzanianNumber = (phone: string): string => {
     return cleaned;
 };
 
-export const sendSMSOTP = async(recipientNumber: string, otpCode: string) => {
+export const sendSMSOTP = async (recipientNumber: string, otpCode: string) => {
     try {
         // 1. Sanitize the incoming phone number based on your curl specification
         const sanitizedRecipient = sanitizeTanzanianNumber(recipientNumber);
 
-        const message = `${otpCode} is your Simamia App verification code. Do not share it with anyone.`;
+        const message = `<#> Namba yako ya kuthibitisha Simamia ni: ${otpCode}.
+            Itatumika kwa dakika 5.
+
+            ${genRandom()}`;
 
         const options = {
             method: "POST",
