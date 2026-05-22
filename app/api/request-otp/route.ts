@@ -124,7 +124,7 @@ export async function POST(request: Request) {
                 return Response.json(
                     {
                         success: false,
-                        message: error instanceof Error ? error.message : "Failed to send OTP verification code."
+                        error: error instanceof Error ? error.message : "Failed to send OTP verification code."
                     },
                     { status: 400 } // Bad Request
                 );

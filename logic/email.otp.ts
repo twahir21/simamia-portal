@@ -20,7 +20,7 @@ export async function SendEmailOTP(identity: string, otp: string) {
       return {
         success: false,
         status: 400,
-        message: "Failed to send email",
+        error: "Failed to send email",
       };
     }
 
@@ -35,7 +35,7 @@ export async function SendEmailOTP(identity: string, otp: string) {
     return {
       success: false,
       status: 500,
-      message: "Server error",
+      error: "Server error",
     };
   }
 }
