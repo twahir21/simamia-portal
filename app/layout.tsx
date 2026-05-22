@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Delius } from "next/font/google";
 import "./globals.css";
-import { Toaster } from 'sonner';
+import { Toaster } from "sonner";
 import { TopBar } from "@/ui/topBar";
 import { Footer } from "@/ui/footer";
+import { faqSchema } from "@/const/faq.const";
 
 // 2. Configure the font
 const delius = Delius({
@@ -77,6 +78,11 @@ export const metadata: Metadata = {
 
   category: "business",
 
+  other: {
+    "geo.region": "TZ",
+    "geo.placename": "Tanzania",
+  },
+
   alternates: {
     canonical: "https://simamia.co.tz",
   },
@@ -100,21 +106,62 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="sw">
       <head>
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css"
         />
       </head>
-      <body
-        className={`${delius.className} antialiased`}
-      >
+      <body className={`${delius.className} antialiased`}>
         <TopBar />
         {children}
         <Footer />
-        <Toaster position="top-right" richColors />      
+        <Toaster position="top-right" richColors />
       </body>
+
+      {/* SEO JSON-LD SCRIPT */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "SoftwareApplication",
+                "@id": "https://simamia.co.tz/#application",
+                name: "Simamia App",
+                applicationCategory: "BusinessApplication",
+                operatingSystem: "Android",
+                description:
+                  "Programu nyepesi ya Kiswahili ya kusimamia biashara, mauzo, stoki na madeni bila bando (offline) kwa wafanyabiashara wa Tanzania.",
+                url: "https://simamia.co.tz",
+                image: "https://simamia.co.tz/og-simamia.webp",
+                featureList:
+                  "Offline mode, Mauzo na Matumizi, Udhibiti wa Stoki, Usimamizi wa Madeni, Ripoti za Faida",
+                publisher: {
+                  "@type": "Organization",
+                  name: "Simamia App",
+                },
+                offers: {
+                  "@type": "Offer",
+                  price: "0",
+                  priceCurrency: "TZS",
+                },
+                areaServed: {
+                  "@type": "Country",
+                  name: "Tanzania",
+                },
+              },
+              {
+                "@type": "FAQPage",
+                "@id": "https://simamia.co.tz/#faq",
+                mainEntity: faqSchema.mainEntity, // Hapa inavuta yale maswali yetu mapya moja kwa moja
+              },
+            ],
+          }),
+        }}
+      />
     </html>
   );
 }
