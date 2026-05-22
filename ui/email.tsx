@@ -7,10 +7,17 @@ export default function EmailTemplate({identity,  otp }: EmailTemplateProps) {
   return (
     <div style={container}>
       <div style={card}>
-        {/* Crucial for Notification Preview: Keeps text short and front-loads the OTP */}
-        <p style={notificationHeader}>
-          Your Simamia App code is <strong>{otp}</strong>. Valid for 2 minutes.
-        </p>
+        {/* Email Preview Text */}
+        <div
+          style={{
+            display: "none",
+            overflow: "hidden",
+            maxHeight: "0",
+            opacity: 0,
+          }}
+        >
+          Your Simamia App code is {otp}. Valid for 2 minutes.
+        </div>
 
         <h2 style={title}>Security Verification</h2>
 
@@ -48,16 +55,6 @@ const card = {
   border: "1px solid #e2e8f0", // slate-200
 };
 
-// Hidden or micro-text at the top ensures this is what the notification grabs first
-const notificationHeader = {
-  fontSize: "14px",
-  color: "#0369a1", // sky-700
-  backgroundColor: "#e0f2fe", // sky-100
-  padding: "10px 14px",
-  borderRadius: "8px",
-  marginBottom: "24px",
-  fontWeight: "500",
-};
 
 const title = {
   fontSize: "20px",
