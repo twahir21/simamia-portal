@@ -1,4 +1,3 @@
-import { createOTP } from '@/configs/otp.config'
 import { redis } from '@/configs/redis.config'
 import { EmailTemplate } from '@/ui/email'
 import { Resend } from 'resend'
@@ -7,11 +6,11 @@ const resend = new Resend(process.env.RESEND_API)
 
 const DAILY_LIMIT = 3
 
-export async function SendEmailOTP(identity: string, email: string) {
+export async function SendEmailOTP(identity: string, otp: string) {
   try {
     
     const today = new Date().toISOString().slice(0,10)
-    const key = `email-limit:${email}:${today}`
+    const key = `email-limit:${identity}:${today}`
 
     const count = await redis.get(key)
 
@@ -24,9 +23,9 @@ export async function SendEmailOTP(identity: string, email: string) {
 
     const { data, error } = await resend.emails.send({
       from: 'Simamia APP <noreply@contact.simamia.co.tz>',
-      to: [email],
+      to: [identity],
       subject: 'OTP - Verification',
-      react: EmailTemplate({ identity, otp: await createOTP(email) }),
+      react: EmailTemplate({ identity, otp }),
     })
 
     if (error) {
