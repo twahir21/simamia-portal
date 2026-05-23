@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import Link from "next/link";
 import {
   Calendar,
@@ -17,7 +17,7 @@ import {
   Sparkles,
   BookOpen,
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 interface BlogPost {
   id: string;
@@ -128,12 +128,22 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
+
+const itemVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 15,
+  },
+
   visible: {
     opacity: 1,
     y: 0,
-    transition: { type: "spring", stiffness: 120, damping: 14 },
+
+    transition: {
+      type: "spring",
+      stiffness: 120,
+      damping: 14,
+    },
   },
 };
 
@@ -143,9 +153,7 @@ export default function BlogPage() {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
 
   // Performance Optimization: Prevent calculation lagging on continuous inputs
   const filteredPosts = useMemo(() => {
@@ -192,14 +200,12 @@ export default function BlogPage() {
     return colors[category] || "bg-slate-50 text-slate-700 border-slate-200";
   };
 
-  if (!mounted) return <div className="min-h-screen bg-white" />;
-
   return (
     <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-sky-500 selection:text-white">
       {/* Decorative Blur Backdrops */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-sky-200/30 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-1/4 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-blue-100/30 to-transparent rounded-full blur-3xl -translate-x-1/4" />
+        <div className="absolute top-0 right-0 w-150 h-150 bg-linear-to-br from-sky-200/30 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+        <div className="absolute bottom-1/4 left-0 w-100 h-100 bg-linear-to-tr from-blue-100/30 to-transparent rounded-full blur-3xl -translate-x-1/4" />
       </div>
 
       {/* Hero Section */}
@@ -226,7 +232,7 @@ export default function BlogPage() {
                 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900"
               >
                 The{" "}
-                <span className="text-sky-600 bg-linear-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">
+                <span className="text-sky-600 bg-linear-to-r from-sky-600 to-blue-600 bg-clip-text">
                   SIMAMIA APP
                 </span>{" "}
                 Knowledge Base
@@ -280,7 +286,7 @@ export default function BlogPage() {
               <div className="absolute -inset-2 bg-linear-to-r from-sky-500 to-blue-500 rounded-3xl blur-xl opacity-10" />
               <div className="relative bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/60 overflow-hidden group">
                 <div className="h-48 bg-linear-to-br from-sky-600 via-sky-500 to-slate-800 p-6 flex flex-col justify-between relative">
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)] pointer-events-none" />
+                  <div className="absolute inset-0 bg-[radial-linear(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)] pointer-events-none" />
                   <span className="self-start px-2.5 py-1 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white text-[10px] font-bold uppercase tracking-wider">
                     Featured Article
                   </span>
@@ -643,7 +649,7 @@ export default function BlogPage() {
             viewport={{ once: true }}
             className="bg-slate-900 rounded-3xl p-8 sm:p-12 text-center border border-slate-800 shadow-xl relative overflow-hidden"
           >
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(14,165,233,0.12),transparent_65%)] pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-linear(ellipse_at_top,rgba(14,165,233,0.12),transparent_65%)] pointer-events-none" />
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-3">
               Ready to Transform Your Duka?
             </h2>
