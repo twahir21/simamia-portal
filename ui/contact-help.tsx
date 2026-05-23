@@ -1,10 +1,12 @@
 import { PHONE_SUPPORT } from "@/const/links.const";
+import { useTranslation } from "@/provider/translation";
 import { motion } from "framer-motion";
 import { ArrowDown, Mail, MessageCircle, Phone } from "lucide-react";
 import { useState } from "react";
 
 export default function ContactHelp () {
     const [isHelpful, setIsHelpful] = useState<boolean | null>(null);
+    const t = useTranslation();
     return (
       <>
         {/* Contact & Support Section */}
@@ -16,10 +18,10 @@ export default function ContactHelp () {
             <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h2 className="text-3xl font-bold mb-4">
-                  Bado unahitaji Msaada?
+                  {t.contactHelp.leftSide.mainTitle}
                 </h2>
                 <p className="text-purple-100 text-lg mb-8">
-                  Timu ipo tayari kukusaidia kwa swali lolote
+                  {t.contactHelp.leftSide.subtitle}
                 </p>
                 <div className="space-y-4">
                   <motion.div
@@ -31,7 +33,7 @@ export default function ContactHelp () {
                     </div>
                     <div>
                       <div className="text-xs text-purple-200">
-                        Msaada wa Simu:
+                        {t.contactHelp.leftSide.phoneLabel}
                       </div>
                       <span className="font-medium">{PHONE_SUPPORT} </span>
                     </div>
@@ -46,7 +48,7 @@ export default function ContactHelp () {
                     </div>
                     <div>
                       <div className="text-xs text-purple-200">
-                        Msaada wa barua pepe
+                        {t.contactHelp.leftSide.emailLabel}
                       </div>
                       <span className="font-medium">huduma@simamia.co.tz</span>
                     </div>
@@ -60,9 +62,11 @@ export default function ContactHelp () {
                       <MessageCircle className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="text-xs text-purple-200">Live chat</div>
+                      <div className="text-xs text-purple-200">
+                        {t.contactHelp.leftSide.chatLabel}
+                      </div>
                       <span className="font-medium">
-                        24/7 Support Inapatikana
+                        {t.contactHelp.leftSide.chatStatus}
                       </span>
                     </div>
                   </motion.div>
@@ -71,25 +75,20 @@ export default function ContactHelp () {
 
               <div className="bg-white/10 rounded-2xl p-8 backdrop-blur-sm border border-white/20">
                 <h3 className="text-xl font-semibold mb-4">
-                  Msaada wa Live Chat
+                  {t.contactHelp.rightSide.cardTitle}
                 </h3>
 
                 <p className="text-purple-100 mb-6">
-                  Ongea na timu yetu ya msaada moja kwa moja. Muda wa kawaida wa
-                  kujibiwa: dakika 2
+                  {t.contactHelp.rightSide.cardDesc}
                 </p>
 
                 {/* FAQ Preview */}
                 <div className="space-y-3 mb-6">
                   <div className="text-sm text-white/80">
-                    Maswali yanayoulizwa mara kwa mara:
+                    {t.contactHelp.rightSide.faqLabel}
                   </div>
 
-                  {[
-                    "Ninawezaje kubadilisha nenosiri langu?",
-                    "Je, ninaweza kupakua taarifa za mauzo yangu?",
-                    "Offline mode inafanyaje kazi?",
-                  ].map((question, i) => (
+                  {t.contactHelp.rightSide.faqQuestions.map((question, i) => (
                     <div
                       key={i}
                       className="text-sm bg-white/5 rounded-lg p-2 cursor-pointer hover:bg-white/10 transition-colors"
@@ -111,8 +110,7 @@ export default function ContactHelp () {
                   className="w-full bg-white text-purple-600 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2"
                 >
                   <MessageCircle className="w-5 h-5" />
-
-                  <span>Anza Mazungumzo</span>
+                  <span>{t.contactHelp.rightSide.buttonText}</span>
                 </motion.button>
               </div>
             </div>
@@ -123,11 +121,9 @@ export default function ContactHelp () {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 text-center">
             <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Je kituo cha Msaada kimekusaidia?
+              {t.feedback.title}
             </h3>
-            <p className="text-gray-600 mb-4">
-              Maoni yako yatatusaidia sisi kukua.
-            </p>
+            <p className="text-gray-600 mb-4">{t.feedback.subtitle}</p>
 
             <div className="flex items-center justify-center space-x-4">
               <motion.button
@@ -140,7 +136,7 @@ export default function ContactHelp () {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Ndio 👍
+                {t.feedback.yesBtn}
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -152,7 +148,7 @@ export default function ContactHelp () {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Hapana 👎
+                {t.feedback.noBtn}
               </motion.button>
             </div>
 
@@ -162,12 +158,11 @@ export default function ContactHelp () {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-sm text-gray-500 mt-4"
               >
-                Asante kwa maoni yako!
+                {t.feedback.thankYou}
               </motion.p>
             )}
           </div>
         </section>
-
 
         {/* Back to Top Button */}
         <motion.button

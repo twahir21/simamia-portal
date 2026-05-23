@@ -2,61 +2,60 @@
 import { motion } from "framer-motion";
 import ContactHelp from "@/ui/contact-help";
 import { SERVER_LINK } from "@/const/links.const";
+import { useTranslation } from "@/provider/translation";
 
 const HelpCenter = () => {
+  const t = useTranslation();
+
 const categories = [
   {
-    title: "Mauzo ya Kijanja",
+    title: t.categories.sales.title,
     icon: "fa-barcode",
-    desc: "Skani barcode, tafuta kwa haraka, au tumia tabo za bidhaa unazopenda kufanya mauzo papo hapo.",
+    desc: t.categories.sales.desc,
     color: "bg-sky-500",
   },
   {
-    title: "Stoki na Bidhaa",
+    title: t.categories.stock.title,
     icon: "fa-boxes-stacked",
-    desc: "Sajili bidhaa, weka upya stoki, na pakia data kwa wingi kupitia CSV ili kujua kilichopo na kilichoisha.",
+    desc: t.categories.stock.desc,
     color: "bg-emerald-500",
   },
   {
-    title: "Madeni na Malipo",
+    title: t.categories.debts.title,
     icon: "fa-hand-holding-dollar",
-    desc: "Angalia muhtasari wa madeni ya wateja, pokea malipo, na ufuatilie hesabu zako kwa urahisi.",
+    desc: t.categories.debts.desc,
     color: "bg-orange-500",
   },
   {
-    title: "Ripoti na Faida",
+    title: t.categories.reports.title,
     icon: "fa-chart-line",
-    desc: "Pata ripoti za kina za kila muamala na ujue mwenendo wa faida au hasara ya biashara yako kwa wakati halisi.",
+    desc: t.categories.reports.desc,
     color: "bg-indigo-500",
   },
   {
-    title: "Matumizi",
+    title: t.categories.expenses.title,
     icon: "fa-wallet",
-    desc: "Rekodi gharama za uendeshaji kama vile kodi, usafiri, na matumizi mengine madogo madogo ya duka.",
+    desc: t.categories.expenses.desc,
     color: "bg-red-500",
   },
   {
-    title: "Oda na Uwasilishaji",
+    title: t.categories.orders.title,
     icon: "fa-truck-fast",
-    desc: "Dhibiti oda za wateja, badili hali ya uwasilishaji, na wasiliana nao moja kwa moja kupitia WhatsApp au SMS.",
+    desc: t.categories.orders.desc,
     color: "bg-purple-500",
   },
 ];
-
   return (
     <div className="min-h-screen bg-gray-50 text-slate-900 selection:bg-sky-100">
       {/* --- HERO SECTION --- */}
       <section className="relative bg-slate-900 py-20 px-6 overflow-hidden">
-        {/* Decorative Grid Pattern */}
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-
         <div className="max-w-6xl mx-auto relative z-10 text-center">
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-sky-400 font-bold tracking-widest uppercase text-sm"
           >
-            Simamia Kituo cha usaidizi
+            {t.helpCenterHero.badge}
           </motion.span>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -64,8 +63,8 @@ const categories = [
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-6xl font-extrabold text-white mt-4 mb-8"
           >
-            Master App yetu kwa <br />{" "}
-            <span className="text-sky-500">Dakika 5</span>
+            {t.helpCenterHero.title1} <br />{" "}
+            <span className="text-sky-500">{t.helpCenterHero.titleAccent}</span>
           </motion.h1>
 
           <div className="max-w-2xl mx-auto group">
@@ -73,7 +72,7 @@ const categories = [
               <i className="fa-solid fa-magnifying-glass absolute left-5 text-slate-400 group-focus-within:text-sky-500 transition-colors"></i>
               <input
                 type="text"
-                placeholder="Tafuta 'jinsi ya ku scan' or 'kuangalia faida'..."
+                placeholder={t.helpCenterHero.searchPlaceholder}
                 className="w-full py-5 pl-14 pr-6 rounded-2xl bg-white/10 border border-white/20 text-white placeholder:text-slate-400 focus:bg-white focus:text-slate-900 focus:ring-4 focus:ring-sky-500/30 transition-all outline-none text-lg shadow-2xl"
               />
             </div>
@@ -94,20 +93,15 @@ const categories = [
             <iframe
               className="w-full h-full"
               src="https://www.youtube.com/embed/dQw4w9WigXcQ?controls=1"
-              title="Master Simamia in 5 Minutes"
+              title={t.masterclass.videoTitle}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             ></iframe>
           </div>
           <div className="p-6 flex flex-col md:flex-row justify-between items-center bg-white">
             <div>
-              <h3 className="text-xl font-bold">
-                Wewe ni mpya kwa Simamia App?
-              </h3>
-              <p className="text-slate-500">
-                Hii ni kozi ya dakika-5 inayojumuisha mauzo, stoku (bidhaa) na
-                ripoti.
-              </p>
+              <h3 className="text-xl font-bold">{t.masterclass.title}</h3>
+              <p className="text-slate-500">{t.masterclass.description}</p>
             </div>
             <button
               className="mt-4 md:mt-0 bg-sky-600 hover:bg-sky-700 text-white px-6 py-3 rounded-xl font-bold transition-transform active:scale-95"
@@ -118,7 +112,7 @@ const categories = [
                 link.click();
               }}
             >
-              Pakua Uongozo (PDF)
+              {t.masterclass.buttonText}
             </button>
           </div>
         </motion.div>
@@ -127,11 +121,8 @@ const categories = [
       {/* --- FEATURE CATEGORIES --- */}
       <section className="max-w-7xl mx-auto px-6 py-24">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">Muhtasari wa Kila Sehemu</h2>
-          <p className="text-slate-500">
-            Mwongozo wa hatua kwa hatua kwa ajili ya kila kitufe kilichopo
-            kwenye programu.
-          </p>
+          <h2 className="text-3xl font-bold mb-4">{t.sectionOverview.title}</h2>
+          <p className="text-slate-500">{t.sectionOverview.subtitle}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

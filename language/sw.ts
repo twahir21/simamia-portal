@@ -138,6 +138,96 @@ export const sw = {
         rightsReserved: "Haki zote zimehifadhiwa.",
     },
 
+    notFound: {
+        title: "Umekwama mawinguni?",
+        button: "Rudi Nyumbani",
+        description: "Ukurasa unaoutafuta umehamishwa, umefutwa, au haujawahi kuwepo kabisa. Hebu tukusaidie kurudi kwenye njia ya kawaida.",
+    },
+
+    downloadHero: {
+        badge: "Inakuja Hivi Karibuni Play Store",
+        description: "Mshirika bora zaidi wa kusimamia shughuli za biashara yako. Pata zana za kitaalamu unazohitaji, kiganjani mwako.",
+        version: "Toleo la v1.2.0",
+        buttonText: "Pakua APK",
+        securityNote: "Upakuaji salama wa moja kwa moja kutoka GitHub",
+    },
+
+    categories: {
+        sales: {
+            title: "Mauzo ya Kijanja",
+            desc: "Skani barcode, tafuta kwa haraka, au tumia tabo za bidhaa unazopenda kufanya mauzo papo hapo.",
+        },
+        stock: {
+            title: "Stoki na Bidhaa",
+            desc: "Sajili bidhaa, weka upya stoki, na pakia data kwa wingi kupitia CSV ili kujua kilichopo na kilichoisha.",
+        },
+        debts: {
+            title: "Madeni na Malipo",
+            desc: "Angalia muhtasari wa madeni ya wateja, pokea malipo, na ufuatilie hesabu zako kwa urahisi.",
+        },
+        reports: {
+            title: "Ripoti na Faida",
+            desc: "Pata ripoti za kina za kila muamala na ujue mwenendo wa faida au hasara ya biashara yako kwa wakati halisi.",
+        },
+        expenses: {
+            title: "Matumizi",
+            desc: "Rekodi gharama za uendeshaji kama vile kodi, usafiri, na matumizi mengine madogo madogo ya duka.",
+        },
+        orders: {
+            title: "Oda na Uwasilishaji",
+            desc: "Dhibiti oda za wateja, badili hali ya uwasilishaji, na wasiliana nao moja kwa moja kupitia WhatsApp au SMS.",
+        },
+    },
+
+    contactHelp: {
+        leftSide: {
+            mainTitle: "Bado unahitaji Msaada?",
+            subtitle: "Timu ipo tayari kukusaidia kwa swali lolote",
+            phoneLabel: "Msaada wa Simu:",
+            emailLabel: "Msaada wa barua pepe:",
+            chatLabel: "Live chat:",
+            chatStatus: "24/7 Support Inapatikana",
+        },
+        rightSide: {
+            cardTitle: "Msaada wa Live Chat",
+            cardDesc: "Ongea na timu yetu ya msaada moja kwa moja. Muda wa kawaida wa kujibiwa: dakika 2",
+            faqLabel: "Maswali yanayoulizwa mara kwa mara:",
+            faqQuestions: [
+                "Ninawezaje kubadilisha nenosiri langu?",
+                "Je, ninaweza kupakua taarifa za mauzo yangu?",
+                "Offline mode inafanyaje kazi?",
+            ],
+            buttonText: "Anza Mazungumzo",
+        },
+    },
+
+    feedback: {
+        title: "Je kituo cha Msaada kimekusaidia?",
+        subtitle: "Maoni yako yatatusaidia sisi kukua.",
+        yesBtn: "Ndio 👍",
+        noBtn: "Hapana 👎",
+        thankYou: "Asante kwa maoni yako!",
+    },
+
+    sectionOverview: {
+        title: "Muhtasari wa Kila Sehemu",
+        subtitle: "Mwongozo wa hatua kwa hatua kwa ajili ya kila kitufe kilichopo kwenye programu.",
+    },
+
+    masterclass: {
+        videoTitle: "Jifunze Simamia kwa Dakika 5",
+        title: "Wewe ni mpya kwa Simamia App?",
+        description: "Hii ni kozi ya dakika-5 inayojumuisha mauzo, stoku (bidhaa) na ripoti.",
+        buttonText: "Pakua Mwongozo (PDF)",
+    },
+
+    helpCenterHero: {
+        badge: "Simamia Kituo cha usaidizi",
+        title1: "Master App yetu kwa",
+        titleAccent: "Dakika 5",
+        searchPlaceholder: "Tafuta 'jinsi ya ku scan' au 'kuangalia faida'...",
+    },
+
     common: {
         apk: "APK ya Android",
         whatsapp: "Habari! Ningependa kufahamu zaidi kuhusu App ya Simamia."

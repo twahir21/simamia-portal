@@ -1,19 +1,15 @@
-import Head from "next/head";
+'use client';
+
 import { Download, Smartphone } from "lucide-react";
 import { APK_LINK } from "@/const/links.const";
 import Image from "next/image";
+import { useTranslation } from "@/provider/translation";
 
 export default function DownloadPage() {
+  const t = useTranslation();
+
   return (
     <div className="relative min-h-screen bg-white text-slate-900 selection:bg-sky-100 flex flex-col items-center justify-center p-6 overflow-hidden">
-      <Head>
-        <title>Pakua Simamia App | Simamia Biashara Yako</title>
-        <meta
-          name="description"
-          content="Pakua toleo jipya la Simamia APK ili kusimamia biashara yako kwa ufanisi mkubwa."
-        />
-      </Head>
-
       {/* BACKGROUND IMAGE LAYER WITH OVERLAY */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -33,7 +29,7 @@ export default function DownloadPage() {
           <div className="inline-flex items-center space-x-2 bg-white px-4 py-2 rounded-full border border-sky-100 shadow-sm">
             <Smartphone size={18} className="text-sky-600" />
             <span className="text-sky-700 font-medium text-sm">
-              Inakuja Hivi Karibuni Play Store
+              {t.downloadHero.badge}
             </span>
           </div>
 
@@ -42,8 +38,7 @@ export default function DownloadPage() {
           </h1>
 
           <p className="text-lg md:text-xl text-slate-600 max-w-xl mx-auto leading-relaxed font-medium">
-            Mshirika bora zaidi wa kusimamia shughuli za biashara yako. Pata
-            zana za kitaalamu unazohitaji, kiganjani mwako.
+            {t.downloadHero.description}
           </p>
         </section>
 
@@ -56,9 +51,11 @@ export default function DownloadPage() {
             <Download className="group-hover:animate-bounce" size={28} />
             <div className="text-left">
               <span className="block text-xs uppercase tracking-[0.2em] font-bold opacity-70">
-                Toleo la v1.0.0
+                {t.downloadHero.version}
               </span>
-              <span className="text-2xl font-black">Pakua APK</span>
+              <span className="text-2xl font-black">
+                {t.downloadHero.buttonText}
+              </span>
             </div>
           </a>
 
@@ -67,19 +64,10 @@ export default function DownloadPage() {
               76MB • Android 8.0+
             </p>
             <p className="text-xs text-slate-400">
-              Upakuaji salama wa moja kwa moja kutoka Github
+              {t.downloadHero.securityNote}
             </p>
           </div>
         </section>
-
-        {/* Floating Instruction Tip */}
-        <div className="bg-sky-50 border border-sky-100 p-4 rounded-2xl max-w-xs">
-          <p className="text-xs text-sky-800 leading-tight">
-            <strong>Ushauri:</strong> Ikihitajika, ruhusu &#34;Sakinisha kutoka
-            Vyanzo Visivyojulikana&#34; (Install from Unknown Sources) kwenye
-            mipangilio ya kivinjari chako ili kukamilisha usakinishaji.
-          </p>
-        </div>
       </main>
     </div>
   );

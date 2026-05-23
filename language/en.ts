@@ -138,6 +138,96 @@ export const en = {
         rightsReserved: "All rights reserved.",
     },
 
+    notFound: {
+        title: "Lost in the clouds?",
+        button: "Back to Home",
+        description: "The page you're looking for has either moved, been removed, or never existed. Let's navigate you back to familiar territory.",
+    },
+
+    downloadHero: {
+        badge: "Coming Soon to Play Store",
+        description: "The ultimate solution to manage your daily business operations. Get all the professional tools you need right at your fingertips.",
+        version: "Version v1.2.0",
+        buttonText: "Download APK",
+        securityNote: "Secure and verified direct download via GitHub",
+    },
+
+    categories: {
+        sales: {
+            title: "Smart Point of Sale",
+            desc: "Scan barcodes, run lightning-fast searches, or use custom favorite product tabs to process checkouts instantly.",
+        },
+        stock: {
+            title: "Inventory & Products",
+            desc: "Register new items, restock lines, and bulk upload products via CSV files to track active stock counts.",
+        },
+        debts: {
+            title: "Debts & Payments",
+            desc: "View clear customer debt summaries, securely record payments, and track outstanding balances with ease.",
+        },
+        reports: {
+            title: "Analytics & Profits",
+            desc: "Access granular transaction logs and track your business profit or loss trends in absolute real time.",
+        },
+        expenses: {
+            title: "Expense Tracker",
+            desc: "Log daily operational overheads like rent, logistics, utility bills, and other minor shop expenditures.",
+        },
+        orders: {
+            title: "Orders & Fulfillment",
+            desc: "Manage customer orders, update delivery dispatch statuses, and message clients directly via WhatsApp or SMS.",
+        },
+    },
+
+    contactHelp: {
+        leftSide: {
+            mainTitle: "Still need Assistance?",
+            subtitle: "Our dedicated support team is ready to help answer any questions",
+            phoneLabel: "Phone Support:",
+            emailLabel: "Email Support:",
+            chatLabel: "Live Chat:",
+            chatStatus: "24/7 Support Available",
+        },
+        rightSide: {
+            cardTitle: "Live Chat Support",
+            cardDesc: "Chat directly with our support agents. Average expected response time: 2 minutes",
+            faqLabel: "Frequently asked questions:",
+            faqQuestions: [
+                "How do I reset or change my password?",
+                "Can I export or download my sales reports?",
+                "How exactly does the offline mode work?",
+            ],
+            buttonText: "Start Conversation",
+        },
+    },
+
+    feedback: {
+        title: "Was this Help Center useful?",
+        subtitle: "Your feedback plays a vital role in helping us improve.",
+        yesBtn: "Yes 👍",
+        noBtn: "No 👎",
+        thankYou: "Thank you for your feedback!",
+    },
+
+    sectionOverview: {
+        title: "Section Overview",
+        subtitle: "A step-by-step feature breakdown for every button available in the app.",
+    },
+
+    masterclass: {
+        videoTitle: "Master Simamia in 5 Minutes",
+        title: "Are you new to the Simamia App?",
+        description: "Watch this quick 5-minute crash course covering sales, inventory setups, and report exports.",
+        buttonText: "Download Guide (PDF)",
+    },
+
+    helpCenterHero: {
+        badge: "Simamia Help Center",
+        title1: "Master our App in just",
+        titleAccent: "5 Minutes",
+        searchPlaceholder: "Search for 'how to scan items' or 'view profit reports'...",
+    },
+
     common: {
         apk: "Android APK",
         whatsapp: "Hello! I'd like to learn more about the Simamia App."

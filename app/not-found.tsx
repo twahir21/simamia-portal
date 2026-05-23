@@ -1,10 +1,13 @@
 "use client";
 
+import { useTranslation } from "@/provider/translation";
 import { motion } from "framer-motion";
 import { Compass, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function NotFound() {
+  const t = useTranslation();
+
   return (
     <main className="relative min-h-screen w-full bg-white overflow-hidden flex items-center justify-center px-4 sm:px-6 lg:px-8">
       {/* Soft Background Washes & Decorative Blobs */}
@@ -64,7 +67,7 @@ export default function NotFound() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4"
         >
-          Lost in the clouds?
+          {t.notFound.title}
         </motion.h2>
 
         {/* Description */}
@@ -74,8 +77,7 @@ export default function NotFound() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="text-slate-600 text-base sm:text-lg leading-relaxed mb-8 max-w-md mx-auto"
         >
-          The page you&apos;re looking for has either moved, been removed, or
-          never existed. Let&apos;s navigate you back to familiar territory.
+          {t.notFound.description}
         </motion.p>
 
         {/* CTA Button */}
@@ -89,7 +91,7 @@ export default function NotFound() {
             className="group inline-flex items-center gap-3 px-8 py-4 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-2xl shadow-lg shadow-sky-500/25 transition-all duration-300 hover:shadow-sky-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
           >
             <ArrowLeft className="w-5 h-5 transition-transform duration-300 group-hover:-translate-x-1" />
-            Back to Home
+            {t.notFound.button}
           </Link>
         </motion.div>
 
