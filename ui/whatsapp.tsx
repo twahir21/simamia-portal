@@ -1,10 +1,13 @@
 "use client";
 
+import { useTranslation } from "@/provider/translation";
+
 export default function WhatsAppButton() {
   const phoneNumber = "255674291587"; 
-  const message = "Hello! I'd like to learn more about the Simamia App.";
+
+  const t = useTranslation();
   
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(t.common.whatsapp)}`;
 
   return (
     <a

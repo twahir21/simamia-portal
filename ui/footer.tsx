@@ -1,7 +1,11 @@
-import { APK_LINK, PHONE_LINK, PHONE_SUPPORT } from '@/const/links.const';
-import Link from 'next/link';
+"use client";
+
+import { APK_LINK, PHONE_LINK, PHONE_SUPPORT } from "@/const/links.const";
+import { useTranslation } from "@/provider/translation";
+import Link from "next/link";
 
 export const Footer = () => {
+  const t = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -10,17 +14,16 @@ export const Footer = () => {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Brand Info */}
           <div className="col-span-1 md:col-span-1">
-            <h3 className="text-lg font-bold text-gray-900">Simamia</h3>
+            <h3 className="text-lg font-bold text-gray-900">Simamia App</h3>
             <p className="mt-4 text-sm leading-relaxed text-gray-500">
-              Mfumo bora zaidi wa usimamizi wa biashara kwa ajili ya kufuatilia
-              madeni, faida, matumizi na mauzo kwa urahisi.
+              {t.footer.brandDesc}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-900">
-              Mfumo wetu
+              {t.footer.ourSystem}
             </h4>
             <ul className="mt-4 space-y-2 text-sm text-gray-600">
               <li>
@@ -28,7 +31,7 @@ export const Footer = () => {
                   href={`${APK_LINK}`}
                   className="hover:text-blue-600 transition-colors"
                 >
-                  Programu ya Simu (App)
+                  {t.footer.mobileApp}
                 </Link>
               </li>
               <li>
@@ -36,7 +39,7 @@ export const Footer = () => {
                   href="/private"
                   className="hover:text-blue-600 transition-colors"
                 >
-                  Akaunti
+                  {t.footer.account}
                 </Link>
               </li>
             </ul>
@@ -45,7 +48,7 @@ export const Footer = () => {
           {/* Support */}
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-900">
-              Msaada
+              {t.footer.support}
             </h4>
             <ul className="mt-4 space-y-2 text-sm text-gray-600">
               <li>
@@ -53,7 +56,7 @@ export const Footer = () => {
                   href="/help-center"
                   className="hover:text-blue-600 transition-colors"
                 >
-                  Kituo cha Msaada
+                  {t.footer.helpCenter}
                 </Link>
               </li>
               <li>
@@ -61,7 +64,7 @@ export const Footer = () => {
                   href="/privacy-policy"
                   className="hover:text-blue-600 transition-colors"
                 >
-                  Sera ya Faragha
+                  {t.footer.privacyPolicy}
                 </Link>
               </li>
               <li>
@@ -69,7 +72,7 @@ export const Footer = () => {
                   href="/terms"
                   className="hover:text-blue-600 transition-colors"
                 >
-                  Masharti ya Matumizi
+                  {t.footer.termsOfService}
                 </Link>
               </li>
             </ul>
@@ -78,10 +81,10 @@ export const Footer = () => {
           {/* Contact */}
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-900">
-              Wasiliana Nasi
+              {t.footer.contactUs}
             </h4>
             <div className="mt-4 text-sm text-gray-600">
-              Tupigie kupitia: <br />
+              {t.footer.callUs} <br />
               <a
                 href={PHONE_LINK}
                 className="font-bold hover:text-blue-600 transition-colors"
@@ -93,7 +96,7 @@ export const Footer = () => {
         </div>
 
         <div className="mt-12 border-t border-gray-100 pt-8 text-center text-sm text-gray-400">
-          © {currentYear} Simamia App. Haki zote zimehifadhiwa.
+          © {currentYear} Simamia App. {t.footer.rightsReserved}
         </div>
       </div>
     </footer>

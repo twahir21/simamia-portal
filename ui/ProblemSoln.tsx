@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "@/provider/translation";
 import { motion } from "framer-motion";
 import {
   XCircle,
@@ -17,61 +18,63 @@ import {
 } from "lucide-react";
 
 const ProblemSolution = () => {
-  const problems = [
-    {
-      title: "Daftari na Kumbukumbu Kupotea",
-      desc: "Mauzo, madeni na taarifa za biashara kupotea au kuharibika kirahisi",
-      icon: <BookCopy className="text-red-500" />,
-    },
-    {
-      title: "Kusahau Madeni ya Wateja",
-      desc: "Kushindwa kufuatilia nani anadaiwa, kiasi gani na lini alikopa",
-      icon: <AlertCircle className="text-red-500" />,
-    },
-    {
-      title: "Bidhaa Kupungua Bila Hesabu",
-      desc: "Stock kuisha au kupotea bila kujua kilichouzwa au kilichobaki",
-      icon: <TrendingDown className="text-red-500" />,
-    },
-    {
-      title: "Muda Kupotea Wakati wa Kuuza",
-      desc: "Kutafuta bidhaa kwa muda mrefu na kuchelewesha huduma kwa mteja",
-      icon: <Clock3 className="text-red-500" />,
-    },
-    {
-      title: "Ripoti za Biashara Kutokueleweka",
-      desc: "Kukosa picha halisi ya faida, matumizi na mwenendo wa biashara",
-      icon: <BarChart className="text-red-500" />,
-    },
-  ];
+  const t = useTranslation();
 
-  const solutions = [
-    {
-      title: "Kumbukumbu Salama Kidijitali",
-      desc: "Mauzo, madeni na taarifa zako zote huhifadhiwa kwa usalama ndani ya app",
-      icon: <Database className="text-green-500" />,
-    },
-    {
-      title: "Ufuatiliaji Rahisi wa Madeni",
-      desc: "Sajili wadaiwa, lipa madeni na angalia muhtasari wa deni muda wowote",
-      icon: <BellRing className="text-green-500" />,
-    },
-    {
-      title: "Usimamizi Sahihi wa Stock",
-      desc: "Fuatilia bidhaa zinazoingia, zinazouzwa na zilizobaki papo hapo",
-      icon: <Package className="text-green-500" />,
-    },
-    {
-      title: "Mauzo ya Haraka na Rahisi",
-      desc: "Tumia scan, smart search na quick sale kuuza kwa sekunde chache",
-      icon: <Zap className="text-green-500" />,
-    },
-    {
-      title: "Ripoti na Takwimu za Biashara",
-      desc: "Pata ripoti za mauzo, matumizi, faida na maendeleo ya biashara yako",
-      icon: <BarChart3 className="text-green-500" />,
-    },
-  ];
+const problems = [
+  {
+    title: t.problems.loss.title,
+    desc: t.problems.loss.desc,
+    icon: <BookCopy className="text-red-500" />,
+  },
+  {
+    title: t.problems.debts.title,
+    desc: t.problems.debts.desc,
+    icon: <AlertCircle className="text-red-500" />,
+  },
+  {
+    title: t.problems.stock.title,
+    desc: t.problems.stock.desc,
+    icon: <TrendingDown className="text-red-500" />,
+  },
+  {
+    title: t.problems.time.title,
+    desc: t.problems.time.desc,
+    icon: <Clock3 className="text-red-500" />,
+  },
+  {
+    title: t.problems.reports.title,
+    desc: t.problems.reports.desc,
+    icon: <BarChart className="text-red-500" />,
+  },
+];
+
+const solutions = [
+  {
+    title: t.solutions.backup.title,
+    desc: t.solutions.backup.desc,
+    icon: <Database className="text-green-500" />,
+  },
+  {
+    title: t.solutions.debts.title,
+    desc: t.solutions.debts.desc,
+    icon: <BellRing className="text-green-500" />,
+  },
+  {
+    title: t.solutions.stock.title,
+    desc: t.solutions.stock.desc,
+    icon: <Package className="text-green-500" />,
+  },
+  {
+    title: t.solutions.sales.title,
+    desc: t.solutions.sales.desc,
+    icon: <Zap className="text-green-500" />,
+  },
+  {
+    title: t.solutions.reports.title,
+    desc: t.solutions.reports.desc,
+    icon: <BarChart3 className="text-green-500" />,
+  },
+];
 
   return (
     <section className="py-24 bg-white overflow-hidden">
@@ -79,12 +82,11 @@ const ProblemSolution = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
-            Acha Kubahatisha, Anza{" "}
-            <span className="text-green-600">Kusimamia</span>
+            {t.home.header.title1}{" "}
+            <span className="text-green-600">{t.home.header.titleAccent}</span>
           </h2>
           <p className="mt-4 text-slate-600 max-w-2xl mx-auto">
-            Biashara nyingi zinashindwa kwa sababu ya kukosa kumbukumbu sahihi.
-            Simamia inabadilisha changamoto zako kuwa fursa.
+            {t.home.header.description}
           </p>
         </div>
 
@@ -102,7 +104,7 @@ const ProblemSolution = () => {
                 <XCircle className="text-red-600 h-6 w-6" />
               </div>
               <h3 className="text-xl font-bold text-slate-800">
-                Changamoto za Zamani
+                {t.problems.mainTitle}
               </h3>
             </div>
 
@@ -143,7 +145,7 @@ const ProblemSolution = () => {
                 <CheckCircle2 className="text-green-600 h-6 w-6" />
               </div>
               <h3 className="text-xl font-bold text-slate-800">
-                Suluhisho la Simamia
+                {t.solutions.mainTitle}
               </h3>
             </div>
 

@@ -1,33 +1,35 @@
+import { useTranslation } from "@/provider/translation";
+
 export default function FAQ() {
+  const t = useTranslation();
+
   const faqs = [
     {
-      q: "Je, naweza kutumia bila internet?",
-      a: "Ndiyo. App inafanya kazi offline kabisa. Data huhifadhiwa kwenye simu yako bila internet",
+      q: t.faqs.offline.q,
+      a: t.faqs.offline.a,
     },
     {
-      q: "Data zangu ziko salama?",
-      a: "Ndiyo. Tunatumia encryption na token verification kuhakikisha data zako zinalindwa.",
+      q: t.faqs.safety.q,
+      a: t.faqs.safety.a,
     },
     {
-      q: "Naweza kufuatilia stock kwa urahisi?",
-      a: "Ndiyo. Unaona stock yote, bidhaa zinazokaribia kuisha, na zilizokwisha.",
+      q: t.faqs.stock.q,
+      a: t.faqs.stock.a,
     },
     {
-      q: "Inaweza kusaidia biashara ndogo?",
-      a: "Ndiyo. Imeundwa mahsusi kwa SMEs—duka, salon, services na biashara za kila siku.",
+      q: t.faqs.sme.q,
+      a: t.faqs.sme.a,
     },
   ];
 
   return (
     <section className="w-full py-20 bg-gray-50">
       <div className="max-w-4xl mx-auto px-4">
-
         <h2 className="text-3xl font-bold mb-10 text-center">
           Maswali Yanayoulizwa Mara kwa Mara
         </h2>
 
         <div className="space-y-4">
-
           {faqs.map((faq, index) => (
             <details
               key={index}
@@ -38,14 +40,10 @@ export default function FAQ() {
                 <span className="group-open:rotate-180 transition">⌄</span>
               </summary>
 
-              <p className="mt-3 text-gray-600 text-sm">
-                {faq.a}
-              </p>
+              <p className="mt-3 text-gray-600 text-sm">{faq.a}</p>
             </details>
           ))}
-
         </div>
-
       </div>
     </section>
   );

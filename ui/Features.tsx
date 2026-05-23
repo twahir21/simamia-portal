@@ -5,43 +5,44 @@ import Image from 'next/image';
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { useTranslation } from '@/provider/translation';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const features = [
-  {
-    title: "Mfumo wa Mauzo",
-    description:
-      "Scan, tafuta bidhaa na hifadhi mauzo kwa haraka ndani ya sekunde chache.",
-    image: "/sale.png",
-    tags: ["Scan", "Mauzo ya Haraka", "Hifadhi Cart"],
-  },
-  {
-    title: "Usimamizi wa Biashara",
-    description:
-      "Simamia wateja, wauzaji, matumizi na historia yote ya biashara sehemu moja.",
-    image: "/pages.png",
-    tags: ["Ripoti", "Wateja", "Historia"],
-  },
-  {
-    title: "Usimamizi wa Oda",
-    description:
-      "Fuatilia oda, delivery na hali ya malipo kwa urahisi muda wowote.",
-    image: "/orders.png",
-    tags: ["Delivery", "Processing", "Oda"],
-  },
-  {
-    title: "Usimamizi wa Stock",
-    description:
-      "Fuatilia bidhaa zilizobaki, stock inayopungua na thamani ya biashara papo hapo.",
-    image: "/stocks.png",
-    tags: ["Stock Chini", "Faida", "Ufuatiliaji"],
-  },
-];
 
 export default function Features() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+
+  const t = useTranslation();
+
+  const features = [
+    {
+      title: t.features.pos.title,
+      description: t.features.pos.description,
+      image: "/sale.png",
+      tags: t.features.pos.tags,
+    },
+    {
+      title: t.features.management.title,
+      description: t.features.management.description,
+      image: "/pages.png",
+      tags: t.features.management.tags,
+    },
+    {
+      title: t.features.orders.title,
+      description: t.features.orders.description,
+      image: "/orders.png",
+      tags: t.features.orders.tags,
+    },
+    {
+      title: t.features.stock.title,
+      description: t.features.stock.description,
+      image: "/stocks.png",
+      tags: t.features.stock.tags,
+    },
+  ];
+
 
   useGSAP(() => {
     const pin = gsap.fromTo(

@@ -13,6 +13,7 @@ import { Righteous } from "next/font/google";
 import WhatsAppButton from "@/ui/whatsapp";
 import { APK_LINK } from "@/const/links.const";
 import { useTranslation } from "@/provider/translation";
+import playStoreBadge from "@/public/play.png";
 
 const zain = Righteous({
   weight: "400",
@@ -38,10 +39,10 @@ export default function Hero() {
         {/* BACKGROUND IMAGE LAYER */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/bg-home.jpg" 
+            src="/bg-home.jpg"
             alt="Background"
             fill
-            className="object-cover opacity-50" 
+            className="object-cover opacity-50"
             priority
           />
         </div>
@@ -76,8 +77,7 @@ export default function Hero() {
               </h1>
 
               <p className="mt-6 text-gray-600 text-lg md:text-xl leading-relaxed max-w-lg">
-                {t.hero.heroDesc}. <strong>Simamia App</strong> —
-                {t.hero.msemo}.
+                {t.hero.heroDesc}. <strong>Simamia App</strong> —{t.hero.msemo}.
               </p>
             </motion.div>
 
@@ -159,11 +159,11 @@ export default function Hero() {
               <span
                 className={`${zain.className} bg-clip-text text-transparent bg-linear-to-r from-white via-sky-100 to-white`}
               >
-                Anza Kusimamia Biashara Yako
+                {t.hero.start}
               </span>
               <br />
               <span className="relative">
-                <span className="text-sky-400">Kiustadi zaidi Leo</span>
+                <span className="text-sky-400">{t.hero.smarter}</span>
                 {/* Decorative Brush/Underline Effect */}
                 <svg
                   className="absolute -bottom-2 left-0 w-full h-2 text-sky-500/50"
@@ -183,67 +183,61 @@ export default function Hero() {
           </div>
 
           <p className="text-lg opacity-90 mb-8">
-            Matumizi bila bando. Kwa haraka. Imetengeneza kwa ajili ya biashara
-            za kweli za Afrika.
+            {t.hero.noNet}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {/* APK Download */}
-            <a
-              href={`${APK_LINK}`}
-              className="flex items-center gap-3 px-8 py-3 bg-white text-indigo-600 font-bold rounded-2xl shadow-lg hover:scale-105 transition-transform duration-200 group"
+            {/* APK Download (Styled like a premium app badge) */}
+            <Link
+              href={APK_LINK}
+              download
+              className="
+                inline-flex items-center gap-3 px-5 py-3 
+                bg-white/10 hover:bg-white/20 backdrop-blur-sm
+                border border-white/20 hover:border-[#3DDC84]/50
+                rounded-xl shadow-lg hover:shadow-[#3DDC84]/10
+                transition-all duration-300 group
+              "
+              aria-label="Download Android APK"
             >
-              {/* Android Icon */}
-              <svg
-                viewBox="0 0 24 24"
-                className="w-6 h-6 fill-indigo-600 group-hover:rotate-12 transition-transform"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M17.523 15.3414C17.0609 15.3414 16.6903 14.9708 16.6903 14.5087C16.6903 14.0465 17.0609 13.6759 17.523 13.6759C17.9852 13.6759 18.3558 14.0465 18.3558 14.5087C18.3558 14.9708 17.9852 15.3414 17.523 15.3414ZM6.477 15.3414C6.01485 15.3414 5.64424 14.9708 5.64424 14.5087C5.64424 14.0465 6.01485 13.6759 6.477 13.6759C6.93915 13.6759 7.30976 14.0465 7.30976 14.5087C7.30976 14.9708 6.93915 15.3414 6.477 15.3414ZM17.8431 11.2335L19.9881 7.51811C20.1255 7.2798 20.0438 6.97491 19.8055 6.83751C19.5673 6.70012 19.2624 6.7818 19.125 7.02011L16.9427 10.8C15.4641 10.1227 13.7915 9.75 12 9.75C10.2085 9.75 8.53592 10.1227 7.05731 10.8L4.875 7.02011C4.7376 6.7818 4.43272 6.70012 4.1945 6.83751C3.95627 6.97491 3.8745 7.2798 4.0119 7.51811L6.15693 11.2335C2.61331 13.1539 0.20892 16.8228 0 21.1111H24C23.7911 16.8228 21.3867 13.1539 17.8431 11.2335Z" />
-              </svg>
-              Pakua APK
-            </a>
-
-            {/* Play Store Coming Soon */}
-            <button
-              disabled
-              className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-linear-to-r from-gray-900 to-black border border-white/10 opacity-80 cursor-not-allowed shadow-md"
-            >
-              {/* Official-style Play Icon */}
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-white">
+              {/* Animated Android Icon */}
+              <div className="relative">
                 <svg
+                  viewBox="0 0 24 24"
+                  className="w-7 h-7 fill-[#3DDC84] drop-shadow-sm group-hover:rotate-6 transition-transform duration-300"
                   xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 512 512"
-                  className="w-6 h-6"
                 >
-                  <path
-                    fill="#34A853"
-                    d="M325.3 234.3L104.6 13.7c-8.4-8.4-22.1-8.4-30.5 0-2.3 2.3-4 5.2-4.9 8.3l256.1 256.1z"
-                  />
-                  <path
-                    fill="#4285F4"
-                    d="M69.2 21.9C68.4 24.9 68 28 68 31.2v449.6c0 3.2.4 6.3 1.2 9.3L325.3 277.7 69.2 21.9z"
-                  />
-                  <path
-                    fill="#FBBC04"
-                    d="M403.5 256c0-7.7-4-14.9-10.6-19l-67.6-41.7-79.2 79.2 79.2 79.2 67.6-41.7c6.6-4.1 10.6-11.3 10.6-19z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M325.3 277.7L69.2 490.1c.9 3.1 2.6 6 4.9 8.3 8.4 8.4 22.1 8.4 30.5 0l220.7-220.7z"
-                  />
+                  <path d="M17.523 15.3414C17.0609 15.3414 16.6903 14.9708 16.6903 14.5087C16.6903 14.0465 17.0609 13.6759 17.523 13.6759C17.9852 13.6759 18.3558 14.0465 18.3558 14.5087C18.3558 14.9708 17.9852 15.3414 17.523 15.3414ZM6.477 15.3414C6.01485 15.3414 5.64424 14.9708 5.64424 14.5087C5.64424 14.0465 6.01485 13.6759 6.477 13.6759C6.93915 13.6759 7.30976 14.0465 7.30976 14.5087C7.30976 14.9708 6.93915 15.3414 6.477 15.3414ZM17.8431 11.2335L19.9881 7.51811C20.1255 7.2798 20.0438 6.97491 19.8055 6.83751C19.5673 6.70012 19.2624 6.7818 19.125 7.02011L16.9427 10.8C15.4641 10.1227 13.7915 9.75 12 9.75C10.2085 9.75 8.53592 10.1227 7.05731 10.8L4.875 7.02011C4.7376 6.7818 4.43272 6.70012 4.1945 6.83751C3.95627 6.97491 3.8745 7.2798 4.0119 7.51811L6.15693 11.2335C2.61331 13.1539 0.20892 16.8228 0 21.1111H24C23.7911 16.8228 21.3867 13.1539 17.8431 11.2335Z" />
                 </svg>
+                {/* Subtle glow effect */}
+                <span className="absolute inset-0 bg-[#3DDC84]/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
 
-              <div className="flex flex-col leading-tight text-left">
-                <span className="text-[10px] uppercase tracking-wide text-gray-400">
-                  Hivi punde itapatikana
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] font-semibold text-white/70 uppercase tracking-widest">
+                  {t.hero.downloadNow}
                 </span>
-                <span className="text-sm font-semibold text-white">
-                  Google Play
+                <span className="text-lg font-bold text-white leading-none">
+                  {t.common.apk}
                 </span>
               </div>
-            </button>
+
+              {/* Badge */}
+              <span className="ml-2 px-2 py-0.5 text-[10px] font-bold bg-[#3DDC84] text-slate-900 rounded-full">
+                v1.2
+              </span>
+            </Link>
+
+            {/* Google Play (Coming Soon - High Quality Image Badge) */}
+            <div className="relative group w-50 h-15 cursor-not-allowed">
+              {/* The clean badge image rendering underneath the overlay */}
+              <Image
+                src={playStoreBadge}
+                alt="Pakua kwenye Google Play"
+                quality={100}
+                className="w-full h-full object-contain opacity-40 select-none pointer-events-none"
+              />
+            </div>
           </div>
         </div>
       </section>
