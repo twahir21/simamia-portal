@@ -228,6 +228,67 @@ export const en = {
         searchPlaceholder: "Search for 'how to scan items' or 'view profit reports'...",
     },
 
+    about: {
+      founded: "Founded Late 2025"  
+    }, 
+    aboutHero: {
+        tagline: "Empowering Tanzanian Businesses",
+        description: "From books to digital — helping small to medium businesses manage with ease, offline-first, built for Tanzania.",
+        downloadBtn: "Free Resource Guide",
+        learnMoreBtn: "How It Works",
+    },
+
+
+    aboutPage: {
+        missionDescription:
+            "To help many Tanzania small to medium businesses manage their operations without stress and with ease — transforming from traditional books to seamless digital solutions.",
+
+        howItStartedTitle: "How It Started",
+        howItStartedDescription:
+            "The idea hit while tracking sales, expenses, and profit at a home glossary shop in",
+        location: "Arusha, Tanzania",
+        howItStartedDescriptionEnd:
+            "We saw the need for a simple, offline-first solution that works for real Tanzanian businesses.",
+
+        smallShopsTitle: "Small Shops",
+        smallShopsSubtitle: "Retail & Services",
+
+        miniMarketsTitle: "Mini Markets",
+        miniMarketsSubtitle: "Supermarkets",
+
+        noPosTitle: "No POS Needed",
+        noPosSubtitle: "Just Your Phone",
+
+        trackEverythingTitle: "Track Everything",
+        trackEverythingSubtitle: "Sales & Profit",
+    },
+
+    uniqueFeatures: {
+        header: {
+            title1: "What Makes Us",
+            titleAccent: "Unique",
+            subtitle: "Built specifically for the Tanzanian business environment",
+        },
+        offlineCard: {
+            title: "Offline-First Design",
+            description: "Record sales, view all data, and perform all actions without internet for extended periods. Perfect for areas with unstable connectivity. Your data syncs when you're back online.",
+        },
+        speedCard: {
+            title: "Type Once, Sell More",
+            description: "No repeated typing. Insert new sales with minimal effort. Our smart system remembers your products and customers, making each sale faster than the last.",
+        },
+    },
+
+    techStack: {
+        title: "Powered By Modern Technology",
+        offlineLabel: "Offline-First Design",
+    },
+
+    getInTouch: {
+        title: "Get In Touch",
+        subtitle: "Have questions? We're here to help you digitize your business operations seamlessly.",
+    },
+
     common: {
         apk: "Android APK",
         whatsapp: "Hello! I'd like to learn more about the Simamia App."

@@ -227,6 +227,66 @@ export const sw = {
         titleAccent: "Dakika 5",
         searchPlaceholder: "Tafuta 'jinsi ya ku scan' au 'kuangalia faida'...",
     },
+    about: {
+        founded: "Ilianzishwa mwishoni mwa 2025"
+    }, 
+    aboutHero: {
+        tagline: "Kuziwezesha Biashara za Kitanzania",
+        description: "Kutoka kwenye madaftari hadi kidijitali — kusaidia biashara ndogo na za kati kusimamia shughuli zao kwa urahisi, bila uhitaji wa intaneti mara kwa mara, ikiwa imetengenezwa mahususi kwa ajili ya Tanzania.",
+        downloadBtn: "Mwongozo wa Bure",
+        learnMoreBtn: "Inavyofanya Kazi",
+    },
+
+
+    aboutPage: {
+        missionDescription:
+            "Kusaidia biashara ndogo na za kati Tanzania kusimamia shughuli zao bila msongo wa mawazo na kwa urahisi — kubadilika kutoka matumizi ya vitabu vya kawaida kwenda kwenye suluhisho rahisi za kidijitali.",
+
+        howItStartedTitle: "Jinsi Ilivyoanza",
+        howItStartedDescription:
+            "Wazo lilikuja wakati wa kufuatilia mauzo, matumizi, na faida katika duka la nyumbani huko",
+        location: "Arusha, Tanzania",
+        howItStartedDescriptionEnd:
+            "Tuliona hitaji la suluhisho rahisi linalofanya kazi hata bila intaneti na linaloendana na biashara halisi za Tanzania.",
+
+        smallShopsTitle: "Maduka Madogo",
+        smallShopsSubtitle: "Rejareja na Huduma",
+
+        miniMarketsTitle: "Mini Market",
+        miniMarketsSubtitle: "Supermarket",
+
+        noPosTitle: "Hakuna POS Inayohitajika",
+        noPosSubtitle: "Simu Yako Inatosha",
+
+        trackEverythingTitle: "Fuatilia Kila Kitu",
+        trackEverythingSubtitle: "Mauzo na Faida",
+    },
+
+    uniqueFeatures: {
+        header: {
+            title1: "Nini Kinatufanya Tuwe",
+            titleAccent: "Tofauti",
+            subtitle: "Imeundwa mahususi kwa ajili ya mazingira ya biashara ya Kitanzania",
+        },
+        offlineCard: {
+            title: "Uwezo wa Kufanya Kazi Offline",
+            description: "Rekodi mauzo, angalia data zako, na fanya kila kitu bila uhitaji wa intaneti kwa muda mrefu. Ni mfumo mzuri kwa maeneo yenye mtandao usio imara. Data zako zitasawazishwa kiotomatiki ukiunganishwa tena.",
+        },
+        speedCard: {
+            title: "Andika Mara Moja, Uza Zaidi",
+            description: "Hakuna kurudia kuandika kila wakati. Weka mauzo mapya kwa urahisi kabisa. Mfumo wetu wa kijanja unakumbuka bidhaa na wateja wako, na kufanya kila mauzo kuwa ya haraka zaidi kuliko ya awali.",
+        },
+    },
+
+    techStack: {
+        title: "Imeendeshwa kwa Teknolojia za Kisasa",
+        offlineLabel: "Inafanya Kazi Bila Mtandao (Offline-First)",
+    },
+
+    getInTouch: {
+        title: "Wasiliana Nasi",
+        subtitle: "Una maswali? Tupo hapa kukusaidia kuingiza biashara yako kwenye mfumo wa kidijitali.",
+    },
 
     common: {
         apk: "APK ya Android",

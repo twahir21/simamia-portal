@@ -1,6 +1,8 @@
 "use client";
 
 import { PHONE_LINK, PHONE_SUPPORT } from "@/const/links.const";
+import { useLanguage } from "@/provider/language-provider";
+import { useTranslation } from "@/provider/translation";
 import HowItWorks from "@/ui/howItworks";
 import { motion } from "framer-motion";
 import {
@@ -17,8 +19,14 @@ import {
   Users,
   BarChart3,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function AboutPage() {
+
+  const t = useTranslation();
+  const { lang } = useLanguage();
+  
+
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -48,7 +56,7 @@ export default function AboutPage() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-sky-100 text-sky-800 rounded-full text-sm font-semibold mb-6"
           >
             <span className="w-2 h-2 bg-sky-600 rounded-full animate-pulse" />
-            Founded Late 2025
+            {t.about.founded}
           </motion.div>
 
           <motion.h1
@@ -66,7 +74,7 @@ export default function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Empowering Tanzanian Businesses
+            {t.aboutHero.tagline}
           </motion.p>
 
           <motion.p
@@ -75,8 +83,7 @@ export default function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            From books to digital — helping small to medium businesses manage
-            with ease, offline-first, built for Tanzania.
+            {t.aboutHero.description}
           </motion.p>
 
           <motion.div
@@ -85,21 +92,21 @@ export default function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <a
+            <Link
               href="/user-guide.pdf"
               download
               className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5"
             >
               <Download className="w-5 h-5" />
-              Free Resource Guide
-            </a>
-            <a
+              {t.aboutHero.downloadBtn}
+            </Link>
+            <Link
               href="#how-it-works"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-200 hover:border-sky-300 text-slate-700 hover:text-sky-700 font-semibold rounded-xl transition-all duration-300"
             >
-              How It Works
+              {t.aboutHero.learnMoreBtn}
               <ArrowRight className="w-5 h-5" />
-            </a>
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -116,12 +123,14 @@ export default function AboutPage() {
           >
             <motion.div variants={fadeInUp}>
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-                Our <span className="text-sky-600">Mission</span>
+                {lang === "en" ? "Our" : "Dhamira"}{" "}
+                <span className="text-sky-600">
+                  {lang === "en" ? "Mission" : "Yetu"}
+                </span>
               </h2>
+
               <p className="text-lg text-slate-600 leading-relaxed">
-                To help many Tanzania small to medium businesses manage their
-                operations without stress and with ease — transforming from
-                traditional books to seamless digital solutions.
+                {t.aboutPage.missionDescription}
               </p>
             </motion.div>
 
@@ -135,16 +144,14 @@ export default function AboutPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900 mb-2">
-                    How It Started
+                    {t.aboutPage.howItStartedTitle}
                   </h3>
                   <p className="text-slate-600">
-                    The idea hit while tracking sales, expenses, and profit at a
-                    home glossary shop in{" "}
+                    {t.aboutPage.howItStartedDescription}{" "}
                     <span className="font-semibold text-sky-700">
-                      Arusha, Tanzania
+                      {t.aboutPage.location}
                     </span>
-                    . We saw the need for a simple, offline-first solution that
-                    works for real Tanzanian businesses.
+                    . {t.aboutPage.howItStartedDescriptionEnd}
                   </p>
                 </div>
               </div>
@@ -162,23 +169,39 @@ export default function AboutPage() {
               <div className="grid grid-cols-2 gap-4 w-full">
                 <div className="bg-white p-6 rounded-2xl shadow-lg shadow-sky-100/50 text-center">
                   <Users className="w-10 h-10 text-sky-600 mx-auto mb-3" />
-                  <p className="font-bold text-slate-900">Small Shops</p>
-                  <p className="text-sm text-slate-500">Retail & Services</p>
+                  <p className="font-bold text-slate-900">
+                    {t.aboutPage.smallShopsTitle}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {t.aboutPage.smallShopsSubtitle}
+                  </p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl shadow-lg shadow-sky-100/50 text-center mt-8">
                   <BarChart3 className="w-10 h-10 text-sky-600 mx-auto mb-3" />
-                  <p className="font-bold text-slate-900">Mini Markets</p>
-                  <p className="text-sm text-slate-500">Supermarkets</p>
+                  <p className="font-bold text-slate-900">
+                    {t.aboutPage.miniMarketsTitle}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {t.aboutPage.miniMarketsSubtitle}
+                  </p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl shadow-lg shadow-sky-100/50 text-center -mt-8">
                   <Smartphone className="w-10 h-10 text-sky-600 mx-auto mb-3" />
-                  <p className="font-bold text-slate-900">No POS Needed</p>
-                  <p className="text-sm text-slate-500">Just Your Phone</p>
+                  <p className="font-bold text-slate-900">
+                    {t.aboutPage.noPosTitle}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {t.aboutPage.noPosSubtitle}
+                  </p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl shadow-lg shadow-sky-100/50 text-center">
                   <TrendingUp className="w-10 h-10 text-sky-600 mx-auto mb-3" />
-                  <p className="font-bold text-slate-900">Track Everything</p>
-                  <p className="text-sm text-slate-500">Sales & Profit</p>
+                  <p className="font-bold text-slate-900">
+                    {t.aboutPage.trackEverythingTitle}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {t.aboutPage.trackEverythingSubtitle}
+                  </p>
                 </div>
               </div>
             </div>
@@ -196,10 +219,13 @@ export default function AboutPage() {
             className="text-center mb-12"
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              What Makes Us <span className="text-sky-600">Unique</span>
+              {t.uniqueFeatures.header.title1}{" "}
+              <span className="text-sky-600">
+                {t.uniqueFeatures.header.titleAccent}
+              </span>
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Built specifically for the Tanzanian business environment
+              {t.uniqueFeatures.header.subtitle}
             </p>
           </motion.div>
 
@@ -215,12 +241,10 @@ export default function AboutPage() {
                 <WifiOff className="w-7 h-7 text-sky-700" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
-                Offline-First Design
+                {t.uniqueFeatures.offlineCard.title}
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                Record sales, view all data, and perform all actions without
-                internet for extended periods. Perfect for areas with unstable
-                connectivity. Your data syncs when you&apos;re back online.
+                {t.uniqueFeatures.offlineCard.description}
               </p>
             </motion.div>
 
@@ -235,12 +259,10 @@ export default function AboutPage() {
                 <Zap className="w-7 h-7 text-sky-700" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">
-                Type Once, Sell More
+                {t.uniqueFeatures.speedCard.title}
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                No repeated typing. Insert new sales with minimal effort. Our
-                smart system remembers your products and customers, making each
-                sale faster than the last.
+                {t.uniqueFeatures.speedCard.description}
               </p>
             </motion.div>
           </div>
@@ -259,7 +281,7 @@ export default function AboutPage() {
             viewport={{ once: true }}
           >
             <h2 className="text-2xl font-bold text-slate-900 mb-8">
-              Powered By Modern Technology
+              {t.techStack.title}
             </h2>
             <div className="flex flex-wrap justify-center gap-4">
               <div className="flex items-center gap-2 px-6 py-3 bg-white rounded-xl shadow-md border border-slate-200">
@@ -279,7 +301,7 @@ export default function AboutPage() {
               <div className="flex items-center gap-2 px-6 py-3 bg-white rounded-xl shadow-md border border-slate-200">
                 <Shield className="w-5 h-5 text-sky-600" />
                 <span className="font-semibold text-slate-700">
-                  Offline-First
+                  {t.techStack.offlineLabel}
                 </span>
               </div>
             </div>
@@ -295,9 +317,11 @@ export default function AboutPage() {
           viewport={{ once: true }}
           className="bg-linear-to-br from-sky-600 to-sky-700 rounded-3xl p-8 sm:p-12 text-center text-white shadow-2xl shadow-sky-500/25"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Get In Touch</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+            {t.getInTouch.title}
+          </h2>
           <p className="text-sky-100 text-lg mb-8 max-w-xl mx-auto">
-            Have questions? We&apos;re here to help you digitize your business.
+            {t.getInTouch.subtitle}
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center gap-6 mb-8">
