@@ -12,6 +12,7 @@ import FAQ from "@/ui/faq";
 import { Righteous } from "next/font/google";
 import WhatsAppButton from "@/ui/whatsapp";
 import { APK_LINK } from "@/const/links.const";
+import { useTranslation } from "@/provider/translation";
 
 const zain = Righteous({
   weight: "400",
@@ -28,6 +29,8 @@ export default function Hero() {
     });
   }, []);
 
+  const t = useTranslation()
+
   return (
     <>
       {/* Hero  */}
@@ -35,14 +38,12 @@ export default function Hero() {
         {/* BACKGROUND IMAGE LAYER */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/bg-home.jpg" // Modern retail/office background
+            src="/bg-home.jpg" 
             alt="Background"
             fill
-            className="object-cover opacity-50" // Low opacity to keep text readable
+            className="object-cover opacity-50" 
             priority
           />
-          {/* Gradient Overlay to ensure contrast */}
-          {/* <div className="absolute inset-0 bg-linear-to-l from-white via-white/90 to-gray-50" /> */}
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
@@ -60,24 +61,23 @@ export default function Hero() {
                   ))}
                 </div>
                 <span className="text-sm font-medium text-gray-600">
-                  5+ Maduka yaliyojisajili
+                  5+ {t.hero.shops}
                 </span>
               </div>
 
               <h1
                 className={` ${zain.className} text-4xl md:text-6xl font-extrabold leading-tight text-gray-900 tracking-tight`}
               >
-                Chukua Udhibiti wa{" "}
+                {t.hero.takeControl}{" "}
                 <span className="bg-clip-text text-transparent bg-linear-to-r from-sky-600 to-emerald-500">
-                  BIASHARA YAKO
+                  {t.hero.yourBiz}
                 </span>{" "}
-                Leo.
+                {t.hero.today}.
               </h1>
 
               <p className="mt-6 text-gray-600 text-lg md:text-xl leading-relaxed max-w-lg">
-                Simamia mauzo, fuatilia madeni, na angalia faida zako moja kwa
-                moja kutoka kwenye simu yako. <strong>Simamia App</strong> —
-                Biashara yako, teknolojia yetu.
+                {t.hero.heroDesc}. <strong>Simamia App</strong> —
+                {t.hero.msemo}.
               </p>
             </motion.div>
 
@@ -93,7 +93,7 @@ export default function Hero() {
                 className="group relative flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white px-8 py-4 rounded-2xl text-lg font-bold transition-all shadow-lg hover:shadow-sky-200 active:scale-95"
               >
                 <Download size={20} className="group-hover:bounce" />
-                Pakua APK
+                {t.common.apk}
               </Link>
 
               <Link
@@ -101,13 +101,13 @@ export default function Hero() {
                 className="flex items-center justify-center gap-2 border-2 border-gray-200 hover:bg-gray-50 px-8 py-4 rounded-2xl text-lg font-bold text-gray-700 transition-all active:scale-95"
               >
                 <PlayCircle size={20} />
-                Angalia Demo
+                {t.hero.demo}
               </Link>
             </motion.div>
 
             <p className="mt-6 flex items-center gap-2 text-sm text-gray-500 font-medium">
               <span className="flex h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
-              Inatumika na wafanyabiashara wadogo kote Tanzania 🇹🇿
+              {t.hero.usedBy} 🇹🇿
             </p>
           </div>
 

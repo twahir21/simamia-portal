@@ -31,6 +31,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: "weekly", // Assuming tutorials or videos are added/updated often
             priority: 0.7,
         },
+        {
+            url: `${baseUrl}/about`,
+            lastModified: new Date(),
+            changeFrequency: "weekly",
+            priority: 0.8,
+        },
 
         // 3. Legal Compliance Pages (Low Priority but required for SEO trust)
         {

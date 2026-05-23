@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { TopBar } from "@/ui/topBar";
 import { Footer } from "@/ui/footer";
 import { faqSchema } from "@/const/faq.const";
+import { LanguageProvider } from "@/provider/language-provider";
 
 // 2. Configure the font
 const delius = Delius({
@@ -112,56 +113,60 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css"
         />
-      </head>
-      <body className={`${delius.className} antialiased`}>
-        <TopBar />
-        {children}
-        <Footer />
-        <Toaster position="top-right" richColors />
-      </body>
 
-      {/* SEO JSON-LD SCRIPT */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@graph": [
-              {
-                "@type": "SoftwareApplication",
-                "@id": "https://simamia.co.tz/#application",
-                name: "Simamia App",
-                applicationCategory: "BusinessApplication",
-                operatingSystem: "Android",
-                description:
-                  "Programu nyepesi ya Kiswahili ya kusimamia biashara, mauzo, stoki na madeni bila bando (offline) kwa wafanyabiashara wa Tanzania.",
-                url: "https://simamia.co.tz",
-                image: "https://simamia.co.tz/og-simamia.webp",
-                featureList:
-                  "Offline mode, Mauzo na Matumizi, Udhibiti wa Stoki, Usimamizi wa Madeni, Ripoti za Faida",
-                publisher: {
-                  "@type": "Organization",
+        {/* SEO JSON-LD SCRIPT */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "SoftwareApplication",
+                  "@id": "https://simamia.co.tz/#application",
                   name: "Simamia App",
+                  applicationCategory: "BusinessApplication",
+                  operatingSystem: "Android",
+                  description:
+                    "Programu nyepesi ya Kiswahili ya kusimamia biashara, mauzo, stoki na madeni bila bando (offline) kwa wafanyabiashara wa Tanzania.",
+                  url: "https://simamia.co.tz",
+                  image: "https://simamia.co.tz/og-simamia.webp",
+                  featureList:
+                    "Offline mode, Mauzo na Matumizi, Udhibiti wa Stoki, Usimamizi wa Madeni, Ripoti za Faida",
+                  publisher: {
+                    "@type": "Organization",
+                    name: "Simamia App",
+                  },
+                  offers: {
+                    "@type": "Offer",
+                    price: "0",
+                    priceCurrency: "TZS",
+                  },
+                  areaServed: {
+                    "@type": "Country",
+                    name: "Tanzania",
+                  },
                 },
-                offers: {
-                  "@type": "Offer",
-                  price: "0",
-                  priceCurrency: "TZS",
+                {
+                  "@type": "FAQPage",
+                  "@id": "https://simamia.co.tz/#faq",
+                  mainEntity: faqSchema.mainEntity, // Hapa inavuta yale maswali yetu mapya moja kwa moja
                 },
-                areaServed: {
-                  "@type": "Country",
-                  name: "Tanzania",
-                },
-              },
-              {
-                "@type": "FAQPage",
-                "@id": "https://simamia.co.tz/#faq",
-                mainEntity: faqSchema.mainEntity, // Hapa inavuta yale maswali yetu mapya moja kwa moja
-              },
-            ],
-          }),
-        }}
-      />
+              ],
+            }),
+          }}
+        />
+      </head>
+      
+      <LanguageProvider>
+        <body className={`${delius.className} antialiased`}>
+          <TopBar />
+          {children}
+          <Footer />
+          <Toaster position="top-right" richColors />
+        </body>
+      </LanguageProvider>
+
     </html>
   );
 }
