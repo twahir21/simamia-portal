@@ -7,6 +7,7 @@ import { Footer } from "@/ui/footer";
 import { faqSchema } from "@/const/faq.const";
 import { LanguageProvider } from "@/provider/language-provider";
 import Script from "next/script";
+import CustomPageTracker from "@/logs/page-analytics";
 
 // 2. Configure the font
 const delius = Delius({
@@ -182,6 +183,8 @@ export default function RootLayout({
           {children}
           <Footer />
           <Toaster position="top-right" richColors />
+          {/* Render the tracking component globally */}
+          <CustomPageTracker />
         </body>
       </LanguageProvider>
     </html>
