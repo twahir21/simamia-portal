@@ -50,8 +50,14 @@ const checkRateLimit = async (identity: string, channel: string) => {
 };
 
 export async function POST(request: Request) {
+    const start = Date.now();
+
+    console.log("1. Request received: ", Date.now() - start)
     try {
         const body = await request.json();
+
+        console.log("2. JSON parsed: ", Date.now() - start)
+
 
         // 2. Validate Data
         const validationResult = otpRequestSchema.safeParse(body);
@@ -67,6 +73,9 @@ export async function POST(request: Request) {
             );
         }
 
+        console.log("3. Validation done: ", Date.now() - start)
+
+
         const { identity, channel, deviceId, appVersion } = validationResult.data;
 
         // 3. Rate Limiting Check
@@ -77,6 +86,9 @@ export async function POST(request: Request) {
                 { status: 429 }
             );
         }
+
+        console.log("4. Rate limit checked: ", Date.now() - start)
+
 
         // 4. Generate OTP
         const otp = generateOTP();
@@ -102,10 +114,15 @@ export async function POST(request: Request) {
             isUsed: false,
         });
 
+        console.log("5. Firestore write done: ", Date.now() - start)
+
+
         // 6. Send OTP (Mocked)
         if (channel === 'phone') {
             try {
+                console.log("6. Sending SMS ....", Date.now() - start);
                 const result = await sendSMSOTP(identity, otp);
+                console.log("7. SMS API responded", Date.now() - start);
 
                 // Safely extract the 200 code from the meta tag, or default to 200
                 const httpStatus = result?.meta?.http_code || 200;
@@ -132,7 +149,12 @@ export async function POST(request: Request) {
         }
 
         else if (channel === 'email') {
+            console.log("6. Sending Email: ", Date.now() - start)
+
             const result = await SendEmailOTP(identity, otp);
+
+            console.log("7. Email API responded: ", Date.now() - start)
+
             
             return Response.json(result, {
                 status: result.status,
