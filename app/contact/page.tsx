@@ -52,7 +52,7 @@ export default function ContactPage() {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 border border-sky-200/60 rounded-full text-xs font-bold text-sky-800 tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-            Grow With Simamia
+            Grow With Simamia App
           </div>
           <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
             Let’s Build Your Digital Retail Infrastructure
@@ -100,7 +100,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Call Operations</h4>
-                    <p className="text-sm font-semibold text-white group-hover:text-sky-400 transition-colors">Mon - Sat, 8AM - 6PM</p>
+                    <p className="text-sm font-semibold text-white group-hover:text-sky-400 transition-colors">Mon - Sun, 7AM - 8PM</p>
                   </div>
                 </a>
 
@@ -111,7 +111,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Corporate Requests</h4>
-                    <p className="text-sm font-semibold text-white">salama@simamia.co.tz</p>
+                    <p className="text-sm font-semibold text-white">huduma@simamia.co.tz</p>
                   </div>
                 </div>
               </div>
