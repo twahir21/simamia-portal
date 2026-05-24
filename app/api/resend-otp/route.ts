@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import admin from "firebase-admin";
-import { adminDb } from "@/firebase/admin.firebase";
 import crypto from "crypto";
+import { adminDb } from "@/firebase/admin.firebase";
+import admin from "firebase-admin";
 import { SendEmailOTP } from "@/logic/email.otp";
 import { sendSMSOTP } from "@/logic/sms.otp";
+import { redis } from "@/configs/redis.config";
 
 // 1. Validation Schema
 const resendSchema = z.object({
@@ -18,9 +19,9 @@ const resendSchema = z.object({
 
 // 2. Security Configuration
 const CONFIG = {
-    OTP_EXPIRY_MINUTES: 2,
+    OTP_EXPIRY_SECONDS: 120, // 2 minutes
     MAX_FAILED_ATTEMPTS: 5,
-    DEVICE_LOCK_DURATION_MS: 60 * 60 * 1000, // 1 hour
+    DEVICE_LOCK_DURATION_SECONDS: 3600, // 1 hour
     BACKOFF_TIERS: [0, 60, 120, 300, 86400],
 };
 
@@ -29,102 +30,15 @@ function generateOTP(): string {
     return crypto.randomInt(1000, 10000).toString();
 }
 
-// 4. Rate Limit Check
-const checkResendLimits = async (identity: string, channel: string, deviceId: string) => {
-    const docId = `${channel}:${identity}`;
-    const limitsRef = adminDb.collection("otp_resend_limits").doc(docId);
-    const limitsDoc = await limitsRef.get();
-    const now = new Date();
-
-    // Check device lock first
-    const deviceLockDoc = await adminDb.collection("device_locks").doc(deviceId).get();
-    if (deviceLockDoc.exists) {
-        const lockData = deviceLockDoc.data();
-        if (lockData?.failedAttempts >= CONFIG.MAX_FAILED_ATTEMPTS) {
-            const lockTime = lockData?.lastFailedAt?.toDate();
-            if (lockTime && Date.now() - lockTime.getTime() < CONFIG.DEVICE_LOCK_DURATION_MS) {
-                const unlockTime = Math.ceil((lockTime.getTime() + CONFIG.DEVICE_LOCK_DURATION_MS - Date.now()) / 1000);
-                return {
-                    allowed: false,
-                    reason: `Device locked due to failed attempts. Try again in ${unlockTime}s`,
-                    retryAfter: unlockTime,
-                    code: "DEVICE_LOCKED"
-                };
-            }
-        }
-    }
-
-    // Check resend cooldown
-    if (!limitsDoc.exists) return { allowed: true, currentCount: 0 };
-
-    const data = limitsDoc.data();
-    if (!data) return { allowed: true, currentCount: 0 };
-
-    const currentCount = data.resendCount || 0;
-    const lastResend = data.lastResendAt?.toDate();
-
-    if (lastResend && currentCount >= 1) {
-        // Use (currentCount - 1) to map: 1→index0, 2→index1, etc.
-        const tierIndex = Math.min(currentCount - 1, CONFIG.BACKOFF_TIERS.length - 1);
-        const requiredCooldownMs = CONFIG.BACKOFF_TIERS[tierIndex] * 1000;
-        const timeSinceLast = now.getTime() - lastResend.getTime();
-
-        if (timeSinceLast < requiredCooldownMs) {
-            const remaining = Math.ceil((requiredCooldownMs - timeSinceLast) / 1000);
-            return {
-                allowed: false,
-                reason: `Please wait ${remaining} seconds before requesting another OTP`,
-                retryAfter: remaining,
-                code: "RATE_LIMITED"
-            };
-        }
-    }
-
-    return { allowed: true, currentCount };
-};
-
-// 5. Atomic Update Function
-const updateResendState = async (identity: string, channel: string, newOtpHash: string, expiresAt: Date, deviceId?: string, appVersion?: string) => {
-    const docId = `${channel}:${identity}`;
-    const otpRef = adminDb.collection("otps").doc(docId);
-    const limitsRef = adminDb.collection("otp_resend_limits").doc(docId);
-    const now = admin.firestore.FieldValue.serverTimestamp();
-    const batch = adminDb.batch();
-
-    // Update OTP record - FULL REPLACE to ensure previous OTP is invalidated
-    batch.set(otpRef, {
-        identity,
-        channel,
-        otpHash: newOtpHash,
-        deviceId: deviceId || null,
-        appVersion: appVersion || null,
-        createdAt: now,
-        expiresAt,
-        isUsed: false,
-        attemptCount: 0, // Critical: reset attempts for new OTP
-        resentAt: now,
-        resendCount: admin.firestore.FieldValue.increment(1),
-    }, { merge: false }); // merge: false ensures clean slate
-
-    // Update resend tracking
-    batch.set(limitsRef, {
-        lastResendAt: now,
-        resendCount: admin.firestore.FieldValue.increment(1),
-        updatedAt: now,
-    }, { merge: true });
-
-    await batch.commit();
-
-    // Fetch updated count for response
-    const updatedLimits = await limitsRef.get();
-    return updatedLimits.data()?.resendCount || 1;
-};
-
 export async function POST(request: Request) {
+    const start = Date.now();
+    console.log("⏱️ 1. Request received: 0ms");
+
     try {
         const body = await request.json();
-        const validationResult = resendSchema.safeParse(body);
+        console.log(`⏱️ 2. JSON parsed: ${Date.now() - start}ms`);
 
+        const validationResult = resendSchema.safeParse(body);
         if (!validationResult.success) {
             return NextResponse.json(
                 {
@@ -135,95 +49,153 @@ export async function POST(request: Request) {
                 { status: 400 }
             );
         }
+        console.log(`⏱️ 3. Validation done: ${Date.now() - start}ms`);
 
         const { identity, channel, deviceId, appVersion } = validationResult.data;
 
-        // Rate limit check
-        const rateCheck = await checkResendLimits(identity, channel, deviceId);
-        if (!rateCheck.allowed) {
+        // --- REDIS STEP 4: CHECK DEVICE LOCK ---
+        const lockKey = `device_locks:${deviceId}`;
+        const failedAttemptsStr = await redis.get(lockKey);
+
+        if (failedAttemptsStr && parseInt(failedAttemptsStr, 10) >= CONFIG.MAX_FAILED_ATTEMPTS) {
+            const ttl = await redis.ttl(lockKey); // Find remaining lock seconds natively
             return NextResponse.json(
                 {
                     success: false,
-                    error: rateCheck.reason,
-                    code: rateCheck.code,
-                    ...(rateCheck.retryAfter && { retryAfter: rateCheck.retryAfter }),
+                    error: `Device locked due to failed attempts. Try again in ${ttl}s`,
+                    retryAfter: ttl,
+                    code: "DEVICE_LOCKED"
                 },
                 { status: 429 }
             );
         }
+        console.log(`⏱️ 4. Device lock checked: ${Date.now() - start}ms`);
 
-        // Generate & hash new OTP
-        const otp = generateOTP();
-        const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
-        const expiresAt = new Date(Date.now() + CONFIG.OTP_EXPIRY_MINUTES * 60 * 1000);
+        // --- REDIS STEP 5: CHECK COOLDOWN LIMITS ---
+        const limitsKey = `otp_resend_limits:${channel}:${identity}`;
+        const limitsData = await redis.get(limitsKey);
 
-        // Atomic update: invalidates previous OTP + tracks resend
-        const actualResendCount = await updateResendState(
-            identity, channel, otpHash, expiresAt, deviceId, appVersion
-        );
+        let resendCount = 0;
+        let lastResendAt = 0;
 
-        // Send OTP (mocked - integrate your provider)
-        if (channel === 'phone') {
-            try {
-                const result = await sendSMSOTP(identity, otp);
+        if (limitsData) {
+            const parsedLimits = JSON.parse(limitsData);
+            resendCount = parsedLimits.resendCount || 0;
+            lastResendAt = parsedLimits.lastResendAt || 0;
 
-                // Safely extract the 200 code from the meta tag, or default to 200
-                const httpStatus = result?.meta?.http_code || 200;
+            if (resendCount >= 1) {
+                const tierIndex = Math.min(resendCount - 1, CONFIG.BACKOFF_TIERS.length - 1);
+                const requiredCooldownMs = CONFIG.BACKOFF_TIERS[tierIndex] * 1000;
+                const timeSinceLast = Date.now() - lastResendAt;
 
-                return Response.json(
-                    {
-                        success: true,
-                        message: "OTP sent successfully",
-                        data: result
-                    },
-                    { status: httpStatus }
-                );
-
-            } catch (error) {
-                // This catches numbers that failed validation OR API errors
-                return Response.json(
-                    {
-                        success: false,
-                        error: error instanceof Error ? error.message : "Failed to send OTP verification code."
-                    },
-                    { status: 400 } // Bad Request
-                );
+                if (timeSinceLast < requiredCooldownMs) {
+                    const remaining = Math.ceil((requiredCooldownMs - timeSinceLast) / 1000);
+                    return NextResponse.json(
+                        {
+                            success: false,
+                            error: `Please wait ${remaining} seconds before requesting another OTP`,
+                            retryAfter: remaining,
+                            code: "RATE_LIMITED"
+                        },
+                        { status: 429 }
+                    );
+                }
             }
         }
-        
-        else if (channel === 'email') {
-            const result = await SendEmailOTP(identity, otp);
-            
-            return Response.json(result, {
-                status: result.status,
-            });
-        }
+        console.log(`⏱️ 5. Resend limits evaluated: ${Date.now() - start}ms`);
 
-        // Audit log
-        await adminDb.collection("otp_logs").add({
+        // --- GENERATE NEW DATA ---
+        const otp = generateOTP();
+        const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+        const nextCount = resendCount + 1;
+
+        // --- REDIS STEP 6: ATOMIC WRITE ---
+        const otpKey = `otps:${channel}:${identity}`;
+        const otpPayload = {
             identity,
             channel,
-            deviceId: deviceId || null,
-            appVersion: appVersion || null,
-            action: "otp_resent",
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-            ipAddress: request.headers.get("x-forwarded-for") || null,
-            userAgent: request.headers.get("user-agent") || null,
-        });
+            otpHash,
+            deviceId,
+            appVersion,
+            createdAt: new Date().toISOString(),
+            attemptCount: 0, // Reset verification attempts
+        };
 
+        const nextLimitsPayload = {
+            lastResendAt: Date.now(),
+            resendCount: nextCount
+        };
+
+        // Execute fast pipelining in Redis to execute changes together
+        // Max TTL for tracking corresponds to highest backoff tier (e.g. 1 day)
+        const maxTrackingTTL = CONFIG.BACKOFF_TIERS[CONFIG.BACKOFF_TIERS.length - 1];
+
+        await redis.pipeline()
+            .set(otpKey, JSON.stringify(otpPayload), "EX", CONFIG.OTP_EXPIRY_SECONDS)
+            .set(limitsKey, JSON.stringify(nextLimitsPayload), "EX", maxTrackingTTL)
+            .exec();
+
+        console.log(`⏱️ 6. Redis persistence completed: ${Date.now() - start}ms`);
+
+        // Capture headers safely before jumping out of process scope
+        const ipAddress = request.headers.get("x-forwarded-for") || null;
+        const userAgent = request.headers.get("user-agent") || null;
+
+        // --- ASYNC STEP 7: NON-BLOCKING DISPATCHES ---
+        // Offload execution to a background pipeline so we return a response instantly.
+        (async () => {
+            // A. Dispatch Notification Payload
+            if (channel === 'phone') {
+                try {
+                    console.log(`🚀 [Background] Triggering SMS to ${identity}`);
+                    await sendSMSOTP(identity, otp);
+                } catch (smsError) {
+                    console.error("❌ [Background] Async SMS Delivery Error:", smsError);
+                }
+            } else if (channel === 'email') {
+                try {
+                    console.log(`🚀 [Background] Triggering Email to ${identity}`);
+                    await SendEmailOTP(identity, otp);
+                } catch (emailError) {
+                    console.error("❌ [Background] Async Email Delivery Error:", emailError);
+                }
+            }
+
+            // B. Push Security Event Log out to Firestore long-term bucket
+            try {
+                await adminDb.collection("otp_logs").add({
+                    identity,
+                    channel,
+                    deviceId,
+                    appVersion,
+                    action: "otp_resent",
+                    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                    ipAddress,
+                    userAgent,
+                });
+                console.log("💾 [Background] Firestore long-term audit trail updated.");
+            } catch (fsError) {
+                console.error("❌ [Background] Firestore long-term logging failure:", fsError);
+            }
+        })();
+
+        // --- STEP 8: RETURN RESPONSE ---
+        const nextCooldownSec = CONFIG.BACKOFF_TIERS[Math.min(nextCount - 1, CONFIG.BACKOFF_TIERS.length - 1)];
+
+        console.log(`🏁 7. Returning response instantly to client! Total elapsed execution time: ${Date.now() - start}ms`);
         return NextResponse.json(
             {
                 success: true,
                 message: `New OTP sent to your ${channel}`,
-                expiresIn: CONFIG.OTP_EXPIRY_MINUTES * 60,
-                resendCount: actualResendCount,
-                nextResendAfter: CONFIG.BACKOFF_TIERS[Math.min(actualResendCount - 1, CONFIG.BACKOFF_TIERS.length - 1)],
+                expiresIn: CONFIG.OTP_EXPIRY_SECONDS,
+                resendCount: nextCount,
+                nextResendAfter: nextCooldownSec,
             },
             { status: 200 }
         );
 
     } catch (error) {
-        console.error("❌ OTP resend error:", error instanceof Error ? error.message : String(error));
+        console.error("❌ OTP resend top-level execution error:", error instanceof Error ? error.message : String(error));
         return NextResponse.json(
             {
                 success: false,

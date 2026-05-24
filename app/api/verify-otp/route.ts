@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import admin from "firebase-admin";
+import crypto from "crypto";
 import { adminDb } from "@/firebase/admin.firebase";
-import crypto from "crypto"
+import admin from "firebase-admin";
+import { redis } from "@/configs/redis.config";
 
-// 1. Validation Schema for Verify Request
+// 1. Validation Schema
 const verifySchema = z.object({
   identity: z.string().min(1, "Identity is required"),
   channel: z.enum(["phone", "email"], {
@@ -16,23 +17,24 @@ const verifySchema = z.object({
 
 // 2. Constants for Security Policies
 const CONFIG = {
-  OTP_EXPIRY_MINUTES: 2,
   MAX_VERIFY_ATTEMPTS: 5,
-  // Progressive lockout delays based on cumulative fails (in milliseconds)
+  // Progressive lockout delays in seconds
   LOCKOUT_TIERS: [
-    60 * 1000,          // 1st tier lockout: 60 seconds
-    2 * 60 * 1000,      // 2nd tier lockout: 2 minutes
-    5 * 60 * 1000,      // 3rd tier lockout: 5 minutes
-    24 * 60 * 60 * 1000 // 4th tier+ lockout: 24 hours
+    60,         // 1st lock: 1 minute
+    120,        // 2nd lock: 2 minutes
+    300,        // 3rd lock: 5 minutes
+    86400       // 4th lock+: 24 hours
   ]
 };
 
-
 export async function POST(request: Request) {
+  const start = Date.now();
+  console.log("⏱️ 1. Verification request received: 0ms");
+
   try {
     const body = await request.json();
+    console.log(`⏱️ 2. JSON parsed: ${Date.now() - start}ms`);
 
-    // --- Validate Input ---
     const validationResult = verifySchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
@@ -44,121 +46,87 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    console.log(`⏱️ 3. Validation done: ${Date.now() - start}ms`);
 
     const { identity, channel, otp, deviceId } = validationResult.data;
-    const docId = `${channel}:${identity}`;
-    const otpRef = adminDb.collection("otps").doc(docId);
+    const otpKey = `otps:${channel}:${identity}`;
+    const lockKey = `device_locks:${deviceId}`;
 
-    const deviceLockRef = adminDb.collection("device_locks").doc(deviceId);
+    // --- SECURITY CHECK 1: PROGRESSIVE DEVICE LOCKOUT (REDIS) ---
+    const failedAttemptsStr = await redis.get(lockKey);
+    let failedAttempts = failedAttemptsStr ? parseInt(failedAttemptsStr, 10) : 0;
 
-    const now = new Date();
+    if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS) {
+      const ttl = await redis.ttl(lockKey);
+      if (ttl > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Too many failed attempts. Device temporarily locked.",
+            retryAfter: ttl,
+          },
+          { status: 429 }
+        );
+      }
+    }
+    console.log(`⏱️ 4. Device lock evaluated: ${Date.now() - start}ms`);
 
-    // --- Security Check 1: Progressive Device Lockout ---
-    const deviceLockDoc = await deviceLockRef.get();
-    
-    if (deviceLockDoc.exists) {
-      const lockData = deviceLockDoc.data();
-      const failedAttempts = lockData?.failedAttempts || 0;
-      const lastFailedAt = lockData?.lastFailedAt?.toDate();
+    // --- FETCH & VALIDATE OTP FROM REDIS ---
+    const otpDataStr = await redis.get(otpKey);
+    console.log(`⏱️ 5. OTP record fetched from Redis: ${Date.now() - start}ms`);
 
-      // If user has failed attempts, calculate progressive cooldown
-      if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS && lastFailedAt) {
-        // Determine tier: index is based on how many intervals of MAX_VERIFY_ATTEMPTS have passed
+    if (!otpDataStr) {
+      return NextResponse.json(
+        { success: false, error: "Invalid or expired OTP" },
+        { status: 400 }
+      );
+    }
+
+    const otpData = JSON.parse(otpDataStr);
+
+    // Guard rails: Device binding check & code-level maximum attempts
+    if (otpData.deviceId && otpData.deviceId !== deviceId) {
+      return NextResponse.json({ success: false, error: "Invalid verification request" }, { status: 400 });
+    }
+
+    if ((otpData.attemptCount || 0) >= CONFIG.MAX_VERIFY_ATTEMPTS) {
+      await redis.del(otpKey); // Nuclear burn code on max entry exhaustion
+      return NextResponse.json({ success: false, error: "OTP invalidated" }, { status: 400 });
+    }
+
+    // --- VERIFY CRYPTO HASH ---
+    const incomingHash = crypto.createHash("sha256").update(otp).digest("hex");
+
+    if (otpData.otpHash !== incomingHash) {
+      // ❌ WRONG OTP PROCESSING BRANCH
+      otpData.attemptCount = (otpData.attemptCount || 0) + 1;
+
+      // Increment total device failures and extract the new total
+      failedAttempts = await redis.incr(lockKey);
+
+      // Apply progressive lockout penalty if they crossed a threshold tier
+      if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS) {
         const tierIndex = Math.min(
           Math.floor(failedAttempts / CONFIG.MAX_VERIFY_ATTEMPTS) - 1,
           CONFIG.LOCKOUT_TIERS.length - 1
         );
-        const lockWindowMs = CONFIG.LOCKOUT_TIERS[tierIndex];
-        const unlockAt = lastFailedAt.getTime() + lockWindowMs;
-
-        if (now.getTime() < unlockAt) {
-          const retryAfter = Math.ceil((unlockAt - now.getTime()) / 1000);
-          return NextResponse.json(
-            {
-              success: false,
-              error: "Too many failed attempts. Device temporarily locked.",
-              retryAfter, // Time remaining in seconds
-            },
-            { status: 429 }
-          );
-        }
+        const lockWindowSeconds = CONFIG.LOCKOUT_TIERS[tierIndex];
+        await redis.expire(lockKey, lockWindowSeconds);
+      } else {
+        // Keeps the rolling counter alive for at least 15 minutes if not locked out yet
+        await redis.expire(lockKey, 900);
       }
-    }
 
-    // --- Fetch OTP Record ---
-    const doc = await otpRef.get();
+      // Update the incremental attempt count back to the OTP key payload
+      const remainingTTL = await redis.ttl(otpKey);
+      if (remainingTTL > 0) {
+        await redis.set(otpKey, JSON.stringify(otpData), "EX", remainingTTL);
+      }
 
-    // ALL validation inside transaction
-    // Fail fast: No record found (don't reveal if identity exists or not)
-    if (!doc.exists) {
-      return NextResponse.json(
-        { success: false, error: "Invalid or expired OTP" },
-        { status: 400 }
-      );
-    }
-
-    const data = doc.data();
-    if (!data || data.isUsed) {
-      return NextResponse.json(
-        { success: false, error: "Invalid or expired OTP" },
-        { status: 400 }
-      );
-    }
-
-    // --- Security Check 2: Expired? ---
-    const expiresAt = data.expiresAt?.toDate();
-    if (!expiresAt || now > expiresAt) {
-      return NextResponse.json(
-        { success: false, error: "Invalid or expired OTP" },
-        { status: 400 }
-      );
-    }
-
-    // device
-    if (data.deviceId && data.deviceId !== deviceId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid verification request",
-        },
-        { status: 400 }
-      );
-    }
-
-    if ((data.attemptCount || 0) >= 5) {
-      return NextResponse.json(
-        { success: false, error: "OTP invalidated" },
-        { status: 400 }
-      );
-    }
-
-    // --- Verify OTP Hash ---
-    const incomingHash = crypto
-      .createHash("sha256")
-      .update(otp)
-      .digest("hex");
-
-
-    if (data.otpHash !== incomingHash) {
-
-      // Track failed attempt on the individual OTP doc
-      await otpRef.update({
-        attemptCount: admin.firestore.FieldValue.increment(1),
-        lastAttemptAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      // Log failure to device profile
-      await deviceLockRef.set({
-        failedAttempts: admin.firestore.FieldValue.increment(1),
-        lastFailedAt: admin.firestore.FieldValue.serverTimestamp(),
-      }, { merge: true });
-
-      const updatedDeviceDoc = await deviceLockRef.get();
-      const currentDeviceFails = updatedDeviceDoc.data()?.failedAttempts || 1;
-
-      const remainder = currentDeviceFails % CONFIG.MAX_VERIFY_ATTEMPTS;
+      const remainder = failedAttempts % CONFIG.MAX_VERIFY_ATTEMPTS;
       const remainingAttempts = remainder === 0 ? 0 : CONFIG.MAX_VERIFY_ATTEMPTS - remainder;
 
+      console.log(`⏱️ 6. Invalid OTP processing completed: ${Date.now() - start}ms`);
       return NextResponse.json(
         {
           success: false,
@@ -171,36 +139,39 @@ export async function POST(request: Request) {
       );
     }
 
-    // --- 4. SUCCESS: Use Atomic Batch Operations ---
-    const batch = adminDb.batch();
+    // ---  SUCCESS BRANCH ---
+    // Atomic cleanups: wipe OTP and clear device lock penalties instantly
+    await redis.pipeline()
+      .del(otpKey)
+      .del(lockKey)
+      .exec();
 
-    batch.update(otpRef, {
-      isUsed: true,
-      verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-      attemptCount: 0,
-    });
+    console.log(`⏱️ 6. Redis success cleanup done: ${Date.now() - start}ms`);
 
-    // Clear structural device limit penalties on successful login
-    batch.delete(deviceLockRef);
+    // --- OFFLOAD FOREBASE LONG-TERM AUDIT PIPELINE ---
+   (async () => {
+      try {
+        await adminDb.collection("otp_logs").add({
+          identity,
+          channel,
+          deviceId,
+          action: "verify_success",
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        console.log("💾 [Background] Long-term audit trail updated.");
+      } catch (fsError) {
+        console.error("❌ [Background] Audit log creation failed:", fsError);
+      }
+    })();
 
-    const logRef = adminDb.collection("otp_logs").doc();
-    batch.set(logRef, {
-      identity,
-      channel,
-      deviceId,
-      action: "verify_success",
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    await batch.commit();
-
-    return NextResponse.json({ success: true, message: "OTP verified successfully", verified: true }, { status: 200 });
-
+    console.log(`🏁 7. Returning success response! Execution duration: ${Date.now() - start}ms`);
+    return NextResponse.json(
+      { success: true, message: "OTP verified successfully", verified: true },
+      { status: 200 }
+    );
 
   } catch (error) {
-    console.error("❌ Error in OTP verification:", error);
-
-    // Don't leak internal error details to client
+    console.error("❌ Error in OTP verification engine:", error);
     return NextResponse.json(
       { success: false, error: "Verification failed. Please try again." },
       { status: 500 }
