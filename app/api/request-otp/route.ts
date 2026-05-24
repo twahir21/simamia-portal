@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import admin from "firebase-admin";
 import crypto from "crypto";
-import { adminDb } from "@/firebase/admin.firebase";
 import { SendEmailOTP } from "@/logic/email.otp";
 import { sendSMSOTP } from "@/logic/sms.otp";
 import { redis } from "@/configs/redis.config";
@@ -26,14 +24,9 @@ function generateOTP(): string {
 }
 
 export async function POST(request: Request) {
-    const start = Date.now();
 
-    console.log("1. Request received: ", Date.now() - start)
     try {
         const body = await request.json();
-
-        console.log("2. JSON parsed: ", Date.now() - start)
-
 
         // 2. Validate Data
         const validationResult = otpRequestSchema.safeParse(body);
@@ -49,8 +42,6 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log("3. Validation done: ", Date.now() - start)
-
 
         const { identity, channel, deviceId, appVersion } = validationResult.data;
 
@@ -63,10 +54,6 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log("4. Rate limit checked: ", Date.now() - start)
-
-
-        // 4. Generate OTP
         // 4. Generate OTP
         const otp = generateOTP();
         const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
@@ -85,26 +72,50 @@ export async function POST(request: Request) {
 
         // Store payload in Redis and auto-expire it in 120 seconds (2 minutes)
         await redis.set(redisOtpKey, JSON.stringify(otpPayload), "EX", 120);
-        console.log("5. Firestore write done: ", Date.now() - start)
 
-
-        // 6. OPTIMIZATION: Fire and Forget / Background Execution
-        // Send the SMS/Email in the background without making the user wait for it!
+        // 6. Send OTP 
         if (channel === 'phone') {
-            sendSMSOTP(identity, otp)
-                .then(result => console.log("Background SMS Sent:", result))
-                .catch(err => console.error("Background SMS Failed:", err))
+            try {
+                const result = await sendSMSOTP(identity, otp);
 
+                const httpStatus = result?.meta?.http_code || 200;
+
+                return Response.json(
+                    {
+                        success: true,
+                        message: "OTP sent successfully",
+                        data: result,
+                    },
+                    { status: httpStatus }
+                );
+            } catch (error) {
+                return Response.json(
+                    {
+                        success: false,
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : "Failed to send OTP verification code.",
+                    },
+                    { status: 400 }
+                );
+            }
         } else if (channel === 'email') {
-            SendEmailOTP(identity, otp)
-                .then(result => console.log("Background Email Sent:", result))
-                .catch(err => console.error("Background Email Failed:", err))
+            const result = await SendEmailOTP(identity, otp);
+
+            return Response.json(result, { status: result.status });
+        } else {
+            // Fallback for unsupported channels
+            return Response.json(
+                {
+                    success: true,
+                    message: `OTP sent to your ${channel}`,
+                    expiresIn: 300, // 5 minutes
+                },
+                { status: 200 }
+            );
         }
 
-        return NextResponse.json({
-            success: true,
-            message: "OTP generation initiated successfully",
-        }, { status: 200 });
 
     } catch (error) {
         console.error("❌ Error in OTP handler:", error);
