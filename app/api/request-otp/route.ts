@@ -5,6 +5,8 @@ import crypto from "crypto";
 import { adminDb } from "@/firebase/admin.firebase";
 import { SendEmailOTP } from "@/logic/email.otp";
 import { sendSMSOTP } from "@/logic/sms.otp";
+import { redis } from "@/configs/redis.config";
+import { checkRateLimit } from "@/configs/otp.redis";
 
 
 // 1. Define Validation Schema with Zod
@@ -22,32 +24,6 @@ function generateOTP(): string {
     // cryptographically secure 4 digit OTP
     return crypto.randomInt(1000, 10000).toString();
 }
-
-// Helper: Simple rate limit check (Optional but recommended)
-const checkRateLimit = async (identity: string, channel: string) => {
-    const key = `otp_limits:${channel}:${identity}`;
-    const docRef = adminDb.collection("rate_limits").doc(key);
-    const doc = await docRef.get();
-
-    if (doc.exists) {
-        const data = doc.data();
-        const lastSent = data?.lastSent?.toDate();
-        const now = new Date();
-
-        // Block if sent within last 60 seconds
-        if (lastSent && (now.getTime() - lastSent.getTime()) < 60000) {
-            return false;
-        }
-    }
-
-    // Update rate limit timestamp
-    await docRef.set({
-        lastSent: admin.firestore.FieldValue.serverTimestamp(),
-        count: admin.firestore.FieldValue.increment(1),
-    }, { merge: true });
-
-    return true;
-};
 
 export async function POST(request: Request) {
     const start = Date.now();
@@ -91,84 +67,44 @@ export async function POST(request: Request) {
 
 
         // 4. Generate OTP
+        // 4. Generate OTP
         const otp = generateOTP();
-        const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes expiry
+        const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
 
-        // 5. Save to Firebase Firestore
-        // We use the identity as part of the document ID or query field for easy lookup
-        // Collection: 'otps'
-        // Document ID: A unique ID or composite key like 'phone:+1234567890'
-        const docId = `${channel}:${identity}`;
-
-        await adminDb.collection("otps").doc(docId).set({
-            identity: identity,
-            channel: channel,
-            otpHash: crypto
-                .createHash("sha256")
-                .update(otp)
-                .digest("hex"),
+        // 5. Save to Redis instead of Firestore
+        const redisOtpKey = `otps:${channel}:${identity}`;
+        const otpPayload = {
+            identity,
+            channel,
+            otpHash,
             deviceId: deviceId || null,
             appVersion: appVersion || null,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            expiresAt: expiresAt,
+            createdAt: new Date().toISOString(),
             isUsed: false,
-        });
+        };
 
+        // Store payload in Redis and auto-expire it in 120 seconds (2 minutes)
+        await redis.set(redisOtpKey, JSON.stringify(otpPayload), "EX", 120);
         console.log("5. Firestore write done: ", Date.now() - start)
 
 
-        // 6. Send OTP (Mocked)
+        // 6. OPTIMIZATION: Fire and Forget / Background Execution
+        // Send the SMS/Email in the background without making the user wait for it!
         if (channel === 'phone') {
-            try {
-                console.log("6. Sending SMS ....", Date.now() - start);
-                const result = await sendSMSOTP(identity, otp);
-                console.log("7. SMS API responded", Date.now() - start);
+            sendSMSOTP(identity, otp)
+                .then(result => console.log("Background SMS Sent:", result))
+                .catch(err => console.error("Background SMS Failed:", err))
 
-                // Safely extract the 200 code from the meta tag, or default to 200
-                const httpStatus = result?.meta?.http_code || 200;
-
-                return Response.json(
-                    {
-                        success: true,
-                        message: "OTP sent successfully",
-                        data: result
-                    },
-                    { status: httpStatus }
-                );
-
-            } catch (error) {
-                // This catches numbers that failed validation OR API errors
-                return Response.json(
-                    {
-                        success: false,
-                        error: error instanceof Error ? error.message : "Failed to send OTP verification code."
-                    },
-                    { status: 400 } // Bad Request
-                );
-            }
+        } else if (channel === 'email') {
+            SendEmailOTP(identity, otp)
+                .then(result => console.log("Background Email Sent:", result))
+                .catch(err => console.error("Background Email Failed:", err))
         }
 
-        else if (channel === 'email') {
-            console.log("6. Sending Email: ", Date.now() - start)
-
-            const result = await SendEmailOTP(identity, otp);
-
-            console.log("7. Email API responded: ", Date.now() - start)
-
-            
-            return Response.json(result, {
-                status: result.status,
-            });
-        }
-
-        return NextResponse.json(
-            {
-                success: true,
-                message: `OTP sent to your ${channel}`,
-                expiresIn: 300, // 5 minutes
-            },
-            { status: 200 }
-        );
+        return NextResponse.json({
+            success: true,
+            message: "OTP generation initiated successfully",
+        }, { status: 200 });
 
     } catch (error) {
         console.error("❌ Error in OTP handler:", error);
