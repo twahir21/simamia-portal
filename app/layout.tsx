@@ -6,6 +6,7 @@ import { TopBar } from "@/ui/topBar";
 import { Footer } from "@/ui/footer";
 import { faqSchema } from "@/const/faq.const";
 import { LanguageProvider } from "@/provider/language-provider";
+import Script from "next/script";
 
 // 2. Configure the font
 const delius = Delius({
@@ -114,6 +115,23 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css"
         />
 
+        {/* <!-- Google tag (gtag.js) --> */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-FYVBE3SFG9"
+          strategy="afterInteractive"
+        />
+        <Script>
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments)}
+              gtag('js', new Date());
+
+              gtag('config', 'G-FYVBE3SFG9');
+          `}
+          ;
+        </Script>
+
         {/* SEO JSON-LD SCRIPT */}
         <script
           type="application/ld+json"
@@ -157,7 +175,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      
+
       <LanguageProvider>
         <body className={`${delius.className} antialiased`}>
           <TopBar />
@@ -166,7 +184,6 @@ export default function RootLayout({
           <Toaster position="top-right" richColors />
         </body>
       </LanguageProvider>
-
     </html>
   );
 }
