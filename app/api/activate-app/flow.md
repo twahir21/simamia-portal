@@ -17,7 +17,6 @@
 7. If internet available:
    → call verify endpoint
    → refresh gracePeriodEnd
-   → refresh signed payload if needed
 
 8. If offline AND grace expired:
-   ⚠️ Block only protected actions
+   ⚠️ Block only Add new sales
