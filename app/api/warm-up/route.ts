@@ -17,11 +17,18 @@ export async function GET() {
 
         // 2. Warmup Firebase Admin SDK
         // Instead of writing/reading logs, we just fetch a non-existent document 
-        // reference to kickstart the gRPC/HTTP connections.
         const firebaseStart = Date.now();
-        await adminDb.collection("otp_logs").doc("warmup_probe").get();
-        console.log(`🔥 3. Firebase warmed up successfully in ${Date.now() - firebaseStart}ms`);
 
+        const snap = await adminDb
+            .collection("otp_logs")
+            .doc("warmup_probe")
+            .get();
+
+        console.log(
+            `🔥 3. Firebase warmed up in ${Date.now() - firebaseStart
+            }ms (exists: ${snap.exists})`
+        ); 
+        
         const totalDuration = Date.now() - start;
         console.log(`🏁 4. Warmup complete! Total runtime: ${totalDuration}ms`);
 
@@ -43,7 +50,7 @@ export async function GET() {
 
     } catch (error) {
         console.error("❌ Warmup failed:", error instanceof Error ? error.message : String(error));
-        
+
         // Return a 503 Service Unavailable so monitoring tools can alert you
         return NextResponse.json(
             {

@@ -1,7 +1,7 @@
 ### =========================================================================
 ### Environment Configuration
 ### =========================================================================
-@baseUrl = http://localhost:3000
+@baseUrl = https://simamia.co.tz/api/warm-up
 @contentType = application/json
 @deviceId = dev_mock_macbook_pro_99
 @appVersion = 1.4.2
@@ -11,7 +11,6 @@
 ### =========================================================================
 # Kicks off Next.js Lambda, Pings Redis, and provisions Firestore client pool
 GET {{baseUrl}}/api/warm-up
-User-Agent: LocalRESTClient/1.0
 Accept: {{contentType}}
 
 ###
