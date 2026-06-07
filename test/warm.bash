@@ -1,1 +1,0 @@
-curl -i -X GET http://localhost:3000/api/warm-up

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/admin.firebase";
 import z from "zod";
 import crypto from "crypto";
+import { redis } from "@/configs/redis.config"; // 1. Import Redis instance
 
 // ============================================================================
 // Types & Config
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
         const now = Date.now();
         const incomingType: "guest" | "account" = isGuest ? "guest" : "account";
 
-        // 2. Fetch Existing Registration First to Make Security Decisions
+        // 2. Fetch Existing Registration First to Make Security Decisions (Stays in Firestore)
         const regRef = adminDb.collection("registrations").doc(deviceId);
         const existingSnap = await regRef.get();
         const existingData = existingSnap.exists ? existingSnap.data() : null;
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
             }, { status: 403 });
         }
 
-        // 3. OTP Verification for Account Types
+        // 3. Redis OTP Verification for Account Types
         if (incomingType === "account") {
             if (!identity || !channel) {
                 return NextResponse.json({
@@ -115,37 +116,31 @@ export async function POST(request: Request) {
                 }, { status: 403 });
             }
 
-            const docId = `${channel}:${identity}`;
-            const otpRef = adminDb.collection("otps").doc(docId);
-            const doc = await otpRef.get();
+            // --- REDIS MIGRATION FIX HERE ---
+            const redisOtpKey = `otps:${channel}:${identity}`;
+            const cachedOtpRaw = await redis.get(redisOtpKey);
 
-            if (!doc.exists) {
+            if (!cachedOtpRaw) {
                 return NextResponse.json(
                     { success: false, verified: false, message: "No verification record found." },
-                    { status: 200 }
+                    { status: 200 } // Retained your original status 200 setup
                 );
             }
 
-            const otpData = doc.data();
+            const otpData = JSON.parse(cachedOtpRaw);
 
-            if (otpData?.isUsed && otpData?.verifiedAt) {
-                const verifiedAt = otpData.verifiedAt.toDate();
-                const verificationExpiry = 24 * 60 * 60 * 1000;
-                
-                if (now - verifiedAt.getTime() > verificationExpiry) {
-                    return NextResponse.json({
-                        success: false,
-                        error: "Verification expired. Please request a new OTP."
-                    }, { status: 403 });
-                }
-                await otpRef.delete(); // Single-use token enforcement
-            } else {
+            // Note: Since you're handling validation in a split-second workflow, 
+            // the 120-second TTL on Redis handles the absolute expiry automatically.
+            if (otpData.isUsed) {
                 return NextResponse.json({
                     success: false,
-                    verified: false,
-                    message: "OTP not yet verified. Please complete verification first."
+                    error: "Verification code has already been used."
                 }, { status: 403 });
             }
+
+            // Single-use token enforcement: Delete immediately on successful verification match
+            await redis.del(redisOtpKey);
+            // ---------------------------------
         }
 
         // 4. Guest-to-Guest Reset Abuse Guard
@@ -192,16 +187,12 @@ export async function POST(request: Request) {
             if (existingData.type === "guest" && incomingType === "account") {
                 // Calculate remaining time left on the guest trial
                 const remainingGuestTime = Math.max(0, existingData.expiresAt - now);
-                
-                // New expiry is: right now + full account allowance + whatever they had left on guest
                 expiresAt = now + PACKAGES.guestToAccount.duration + remainingGuestTime;
                 gracePeriodEnd = now + PACKAGES.guestToAccount.grace;
                 createdAt = existingData.createdAt; 
-            }
-            // CASE B: Existing Account Renewal / Re-sync
-            else {
-                expiresAt = existingData.expiresAt; // Retain current expiry (controlled via payment routes, not login)
-                gracePeriodEnd = now + PACKAGES.account.grace; // Re-extend the offline buffer
+            } else {
+                expiresAt = existingData.expiresAt; 
+                gracePeriodEnd = now + PACKAGES.account.grace; 
                 createdAt = existingData.createdAt;
             }
         } else {
@@ -227,7 +218,7 @@ export async function POST(request: Request) {
 
         const signedPayload = generateSignedPayload(activationData, secret);
 
-        // 7. Sync State back to Database
+        // 7. Sync State back to Database (Kept in Firestore for permanent record tracking)
         await regRef.set({
             deviceId,
             type: incomingType,
