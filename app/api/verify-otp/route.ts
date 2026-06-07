@@ -53,8 +53,8 @@ export async function POST(request: Request) {
     const lockKey = `device_locks:${deviceId}`;
 
     // --- SECURITY CHECK 1: PROGRESSIVE DEVICE LOCKOUT (REDIS) ---
-    const failedAttemptsStr: string | null = await redis.get(lockKey);
-    let failedAttempts = failedAttemptsStr ? parseInt(failedAttemptsStr, 10) : 0;
+    const failedAttemptsRaw = await redis.get<number | string>(lockKey);
+    let failedAttempts = failedAttemptsRaw ? Number(failedAttemptsRaw) : 0;
 
     if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS) {
       const ttl = await redis.ttl(lockKey);
@@ -72,17 +72,25 @@ export async function POST(request: Request) {
     console.log(`⏱️ 4. Device lock evaluated: ${Date.now() - start}ms`);
 
     // --- FETCH & VALIDATE OTP FROM REDIS ---
-    const otpDataStr: string | null = await redis.get(otpKey);
+    const otpData = await redis.get<{
+      identity: string;
+      channel: "phone" | "email";
+      otpHash: string;
+      deviceId: string | null;
+      appVersion: string | null;
+      createdAt: string;
+      isUsed: boolean;
+      attemptCount?: number; // Optional because it's added on failed entries
+    }>(otpKey);
     console.log(`⏱️ 5. OTP record fetched from Redis: ${Date.now() - start}ms`);
 
-    if (!otpDataStr) {
+    if (!otpData) {
       return NextResponse.json(
         { success: false, error: "Invalid or expired OTP" },
         { status: 400 }
       );
     }
 
-    const otpData = JSON.parse(otpDataStr);
 
     // Guard rails: Device binding check & code-level maximum attempts
     if (otpData.deviceId && otpData.deviceId !== deviceId) {
@@ -149,7 +157,7 @@ export async function POST(request: Request) {
     console.log(`⏱️ 6. Redis success cleanup done: ${Date.now() - start}ms`);
 
     // --- OFFLOAD FOREBASE LONG-TERM AUDIT PIPELINE ---
-   (async () => {
+    (async () => {
       try {
         await adminDb.collection("otp_logs").add({
           identity,

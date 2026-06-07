@@ -130,7 +130,7 @@ export async function POST(request: Request) {
             const redisOtpKey = `otps:${channel}:${identity}`;
             console.log(`[Activation] Checking Redis Key: ${redisOtpKey}`);
             
-            const cachedOtpRaw: string | null = await redis.get(redisOtpKey);
+            const cachedOtpRaw = await redis.get(redisOtpKey);
 
             if (!cachedOtpRaw) {
                 console.warn("[Activation] Redis: No verification record found");

@@ -55,9 +55,9 @@ export async function POST(request: Request) {
 
         // --- REDIS STEP 4: CHECK DEVICE LOCK ---
         const lockKey = `device_locks:${deviceId}`;
-        const failedAttemptsStr: string | null = await redis.get(lockKey);
+        const failedAttemptsStr = await redis.get<number | string >(lockKey);
 
-        if (failedAttemptsStr && parseInt(failedAttemptsStr, 10) >= CONFIG.MAX_FAILED_ATTEMPTS) {
+        if (failedAttemptsStr && Number(failedAttemptsStr) >= CONFIG.MAX_FAILED_ATTEMPTS) {
             const ttl = await redis.ttl(lockKey); // Find remaining lock seconds natively
             return NextResponse.json(
                 {
@@ -73,13 +73,12 @@ export async function POST(request: Request) {
 
         // --- REDIS STEP 5: CHECK COOLDOWN LIMITS ---
         const limitsKey = `otp_resend_limits:${channel}:${identity}`;
-        const limitsData: string | null = await redis.get(limitsKey);
+        const parsedLimits = await redis.get<{ resendCount: number; lastResendAt: number }>(limitsKey);
 
         let resendCount = 0;
         let lastResendAt = 0;
 
-        if (limitsData) {
-            const parsedLimits = JSON.parse(limitsData);
+        if (parsedLimits) {
             resendCount = parsedLimits.resendCount || 0;
             lastResendAt = parsedLimits.lastResendAt || 0;
 
