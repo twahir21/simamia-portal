@@ -63,8 +63,10 @@ function createFingerprint(deviceId: string, platform: string): string {
 // ============================================================================
 
 export async function POST(request: Request) {
+    console.log("[Activation] Incoming request...");
     try {
         const body = await request.json();
+        console.log("[Activation] Request Body:", JSON.stringify(body, null, 2));
 
         // 1. Validation
         const schema = z.object({
@@ -78,21 +80,27 @@ export async function POST(request: Request) {
 
         const validation = schema.safeParse(body);
         if (!validation.success) {
+            console.warn("[Activation] Validation Failed:", validation.error.message);
             return NextResponse.json({ success: false, error: validation.error.message }, { status: 400 });
         }
 
         const { deviceId, identity, channel, appVersion, platform, isGuest } = validation.data;
         const now = Date.now();
         const incomingType: "guest" | "account" = isGuest ? "guest" : "account";
+        
+        console.log(`[Activation] Processing Type: ${incomingType} for Device: ${deviceId}`);
 
         // 2. Fetch Existing Registration First to Make Security Decisions (Stays in Firestore)
         const regRef = adminDb.collection("registrations").doc(deviceId);
         const existingSnap = await regRef.get();
         const existingData = existingSnap.exists ? existingSnap.data() : null;
+        
+        console.log("[Activation] Existing Data Found:", !!existingData, existingData ? `(Type: ${existingData.type})` : "");
 
         // CRITICAL SECURITY FIX: Strict one-way upgrade path
         // If they are already an account, they cannot downgrade/request a guest token.
         if (existingData?.type === "account" && incomingType === "guest") {
+            console.warn("[Activation] Blocked: Account attempting Guest downgrade");
             return NextResponse.json({
                 success: false,
                 error: "This device is already linked to an account. Guest mode is disabled."
@@ -102,6 +110,7 @@ export async function POST(request: Request) {
         // 3. Redis OTP Verification for Account Types
         if (incomingType === "account") {
             if (!identity || !channel) {
+                console.warn("[Activation] Missing Identity/Channel for Account");
                 return NextResponse.json({
                     success: false,
                     error: "Identity and channel are required for account activation"
@@ -110,6 +119,7 @@ export async function POST(request: Request) {
 
             // SECURITY: Prevent account hijacking - device already linked to DIFFERENT account
             if (existingData?.type === "account" && existingData.identity && existingData.identity !== identity) {
+                console.warn(`[Activation] Blocked: Device linked to ${existingData.identity}, trying ${identity}`);
                 return NextResponse.json({
                     success: false,
                     error: "This device is already linked to a different account"
@@ -118,20 +128,26 @@ export async function POST(request: Request) {
 
             // --- REDIS MIGRATION FIX HERE ---
             const redisOtpKey = `otps:${channel}:${identity}`;
+            console.log(`[Activation] Checking Redis Key: ${redisOtpKey}`);
+            
             const cachedOtpRaw: string | null = await redis.get(redisOtpKey);
 
             if (!cachedOtpRaw) {
+                console.warn("[Activation] Redis: No verification record found");
                 return NextResponse.json(
                     { success: false, verified: false, message: "No verification record found." },
                     { status: 200 } // Retained your original status 200 setup
                 );
             }
 
-            const otpData = JSON.parse(cachedOtpRaw);
+            console.log("[Activation] Redis: Raw Data Retrieved");
+            const otpData = JSON.parse(cachedOtpRaw as string);
+            console.log("[Activation] Redis: Parsed OTP Data:", { isUsed: otpData.isUsed, expires: otpData.expires });
 
             // Note: Since you're handling validation in a split-second workflow, 
             // the 120-second TTL on Redis handles the absolute expiry automatically.
             if (otpData.isUsed) {
+                console.warn("[Activation] Redis: Token already used");
                 return NextResponse.json({
                     success: false,
                     error: "Verification code has already been used."
@@ -140,12 +156,15 @@ export async function POST(request: Request) {
 
             // Single-use token enforcement: Delete immediately on successful verification match
             await redis.del(redisOtpKey);
+            console.log("[Activation] Redis: Token deleted (marked as used)");
             // ---------------------------------
         }
 
         // 4. Guest-to-Guest Reset Abuse Guard
         if (existingData?.type === "guest" && incomingType === "guest") {
+            console.log("[Activation] Checking Guest Reset Guard...");
             if (existingData.expiresAt > now) {
+                console.log("[Activation] Guest trial still active. Returning existing payload.");
                 // Return existing valid guest token payload
                 const activationData: ActivationData = {
                     id: deviceId,
@@ -170,6 +189,7 @@ export async function POST(request: Request) {
                 });
             }
 
+            console.warn("[Activation] Guest trial expired. Upgrade required.");
             return NextResponse.json({
                 success: false,
                 error: "Guest trial expired. Please create an account to continue.",
@@ -185,21 +205,26 @@ export async function POST(request: Request) {
         if (existingData) {
             // CASE A: Upgrading from Guest to Account
             if (existingData.type === "guest" && incomingType === "account") {
+                console.log("[Activation] Case A: Guest -> Account Upgrade");
                 // Calculate remaining time left on the guest trial
                 const remainingGuestTime = Math.max(0, existingData.expiresAt - now);
                 expiresAt = now + PACKAGES.guestToAccount.duration + remainingGuestTime;
                 gracePeriodEnd = now + PACKAGES.guestToAccount.grace;
                 createdAt = existingData.createdAt; 
             } else {
+                console.log("[Activation] Case B: Existing Account Renewal/Update");
                 expiresAt = existingData.expiresAt; 
                 gracePeriodEnd = now + PACKAGES.account.grace; 
                 createdAt = existingData.createdAt;
             }
         } else {
             // CASE C: Brand New Device (First time hitting your ecosystem)
+            console.log("[Activation] Case C: Brand New Device");
             expiresAt = now + PACKAGES[incomingType].duration;
             gracePeriodEnd = now + PACKAGES[incomingType].grace;
         }
+
+        console.log(`[Activation] Calculated Expiry: ${new Date(expiresAt).toISOString()}`);
 
         // 6. Token Generation
         const fingerprint = createFingerprint(deviceId, platform);
@@ -217,8 +242,10 @@ export async function POST(request: Request) {
         if (!secret) throw new Error("Missing ACTIVATION_SECRET");
 
         const signedPayload = generateSignedPayload(activationData, secret);
+        console.log("[Activation] Payload Signed Successfully");
 
         // 7. Sync State back to Database (Kept in Firestore for permanent record tracking)
+        console.log("[Activation] Updating Firestore...");
         await regRef.set({
             deviceId,
             type: incomingType,
@@ -236,6 +263,7 @@ export async function POST(request: Request) {
             tokenVersion: TOKEN_VERSION,
         }, { merge: true });
 
+        console.log("[Activation] Success! Returning response.");
         return NextResponse.json({
             success: true,
             payload: signedPayload,
@@ -245,7 +273,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error) {
-        console.error("Activation Error:", error);
+        console.error("[Activation] CRITICAL ERROR:", error);
         return NextResponse.json({
             success: false,
             error: process.env.NODE_ENV === "production" ? "Activation failed" : (error instanceof Error ? error.message : "Unknown error")
