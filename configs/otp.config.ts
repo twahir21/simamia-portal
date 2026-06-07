@@ -21,7 +21,7 @@ export async function createOTP(email: string) {
 
   const key = `otp:${email}`
 
-  await redis.set(key, hashed, "EX", OTP_TTL)
+  await redis.set(key, hashed,  { ex: OTP_TTL })
 
   return otp
 }

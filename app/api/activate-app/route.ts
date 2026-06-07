@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 
             // --- REDIS MIGRATION FIX HERE ---
             const redisOtpKey = `otps:${channel}:${identity}`;
-            const cachedOtpRaw = await redis.get(redisOtpKey);
+            const cachedOtpRaw: string | null = await redis.get(redisOtpKey);
 
             if (!cachedOtpRaw) {
                 return NextResponse.json(

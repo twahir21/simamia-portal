@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
         // --- REDIS STEP 4: CHECK DEVICE LOCK ---
         const lockKey = `device_locks:${deviceId}`;
-        const failedAttemptsStr = await redis.get(lockKey);
+        const failedAttemptsStr: string | null = await redis.get(lockKey);
 
         if (failedAttemptsStr && parseInt(failedAttemptsStr, 10) >= CONFIG.MAX_FAILED_ATTEMPTS) {
             const ttl = await redis.ttl(lockKey); // Find remaining lock seconds natively
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
 
         // --- REDIS STEP 5: CHECK COOLDOWN LIMITS ---
         const limitsKey = `otp_resend_limits:${channel}:${identity}`;
-        const limitsData = await redis.get(limitsKey);
+        const limitsData: string | null = await redis.get(limitsKey);
 
         let resendCount = 0;
         let lastResendAt = 0;
@@ -131,8 +131,8 @@ export async function POST(request: Request) {
         const maxTrackingTTL = CONFIG.BACKOFF_TIERS[CONFIG.BACKOFF_TIERS.length - 1];
 
         await redis.pipeline()
-            .set(otpKey, JSON.stringify(otpPayload), "EX", CONFIG.OTP_EXPIRY_SECONDS)
-            .set(limitsKey, JSON.stringify(nextLimitsPayload), "EX", maxTrackingTTL)
+            .set(otpKey, JSON.stringify(otpPayload), { ex: CONFIG.OTP_EXPIRY_SECONDS })
+            .set(limitsKey, JSON.stringify(nextLimitsPayload), { ex: maxTrackingTTL })
             .exec();
 
         console.log(`⏱️ 6. Redis persistence completed: ${Date.now() - start}ms`);

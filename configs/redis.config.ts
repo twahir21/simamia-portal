@@ -1,3 +1,10 @@
-import Redis from "ioredis"
+import { Redis } from "@upstash/redis";
 
-export const redis = new Redis(process.env.REDIS_URL!);
+if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    console.error("❌ CRITICAL ERROR: Upstash Redis environment variables are missing!");
+}
+
+export const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL || "",
+    token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
+});

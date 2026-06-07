@@ -71,7 +71,7 @@ export async function POST(request: Request) {
         };
 
         // Store payload in Redis and auto-expire it in 120 seconds (2 minutes)
-        await redis.set(redisOtpKey, JSON.stringify(otpPayload), "EX", 120);
+        await redis.set(redisOtpKey, JSON.stringify(otpPayload), { ex: 120 });
 
         // 6. Send OTP 
         if (channel === 'phone') {

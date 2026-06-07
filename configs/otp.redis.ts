@@ -5,7 +5,7 @@ export const checkRateLimit = async (identity: string, channel: string): Promise
 
     // Attempt to set the key with a 60-second expiration, ONLY if it doesn't exist
     // 'NX' = Only set if not exist. 'EX' = Expire in seconds.
-    const acquired = await redis.set(key, "locked", "EX", 60, "NX");
+    const acquired = await redis.set(key, "locked", { ex: 60, nx: true });
 
     // If acquired is null, the key already exists (user is rate-limited)
     if (!acquired) {

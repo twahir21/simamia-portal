@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     const lockKey = `device_locks:${deviceId}`;
 
     // --- SECURITY CHECK 1: PROGRESSIVE DEVICE LOCKOUT (REDIS) ---
-    const failedAttemptsStr = await redis.get(lockKey);
+    const failedAttemptsStr: string | null = await redis.get(lockKey);
     let failedAttempts = failedAttemptsStr ? parseInt(failedAttemptsStr, 10) : 0;
 
     if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS) {
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     console.log(`⏱️ 4. Device lock evaluated: ${Date.now() - start}ms`);
 
     // --- FETCH & VALIDATE OTP FROM REDIS ---
-    const otpDataStr = await redis.get(otpKey);
+    const otpDataStr: string | null = await redis.get(otpKey);
     console.log(`⏱️ 5. OTP record fetched from Redis: ${Date.now() - start}ms`);
 
     if (!otpDataStr) {
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
       // Update the incremental attempt count back to the OTP key payload
       const remainingTTL = await redis.ttl(otpKey);
       if (remainingTTL > 0) {
-        await redis.set(otpKey, JSON.stringify(otpData), "EX", remainingTTL);
+        await redis.set(otpKey, JSON.stringify(otpData), { ex: remainingTTL });
       }
 
       const remainder = failedAttempts % CONFIG.MAX_VERIFY_ATTEMPTS;

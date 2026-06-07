@@ -8,6 +8,7 @@
     "start": "next start",
     "generate": "bunx drizzle-kit generate",
     "push": "bunx drizzle-kit push",
+    "check": "npx tsc --noEmit",
     "lint": "eslint"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@react-email/components": "^1.0.8",
     "@types/aos": "^3.0.7",
+    "@upstash/redis": "^1.38.0",
     "aos": "^2.3.4",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
@@ -22,7 +24,6 @@
     "firebase-admin": "^13.6.1",
     "framer-motion": "^12.34.3",
     "gsap": "^3.14.2",
-    "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
