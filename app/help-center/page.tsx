@@ -242,7 +242,7 @@ const categories = [
                 whileTap={{ scale: 0.98 }}
                 onClick={() =>
                   window.open(
-                    "https://wa.me/255674291587?text=Habari%20Simamia%20App,%20nahitaji%20msaada.",
+                    "https://wa.me/255798700900?text=Habari%20Simamia%20App,%20nahitaji%20msaada.",
                     "_blank",
                   )
                 }

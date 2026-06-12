@@ -3,7 +3,7 @@
 import { useTranslation } from "@/provider/translation";
 
 export default function WhatsAppButton() {
-  const phoneNumber = "255674291587"; 
+  const phoneNumber = "255798700900"; 
 
   const t = useTranslation();
   

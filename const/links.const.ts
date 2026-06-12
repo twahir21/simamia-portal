@@ -5,8 +5,8 @@ export const SERVER_LINK = isPrd ?
     : 'http://localhost:3000';
 
 
-export const PHONE_SUPPORT = "+255 67 429 1587"
-export const PHONE_LINK = "tel:+255674291587"
+export const PHONE_SUPPORT = "+255 798 700 900"
+export const PHONE_LINK = "tel:+255798700900"
 
 export const BRIQ_SMS_LINK = 'https://karibu.briq.tz/v1/message/send-instant';
 
