@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Delius } from "next/font/google";
+import { Sniglet } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { TopBar } from "@/ui/topBar";
@@ -10,11 +10,11 @@ import Script from "next/script";
 import CustomPageTracker from "@/logs/page-analytics";
 
 // 2. Configure the font
-const delius = Delius({
+const sniglet = Sniglet({
   weight: "400",
   subsets: ["latin"],
   display: "swap",
-});
+})
 
 export const metadata: Metadata = {
   title: {
@@ -122,7 +122,7 @@ export default function RootLayout({
           src="https://www.googletagmanager.com/gtag/js?id=G-FYVBE3SFG9"
           strategy="afterInteractive"
         />
-        <Script>
+        <Script id="google-analytics">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments)}
@@ -130,7 +130,6 @@ export default function RootLayout({
 
               gtag('config', 'G-FYVBE3SFG9');
           `}
-          ;
         </Script>
 
         {/* SEO JSON-LD SCRIPT */}
@@ -178,7 +177,7 @@ export default function RootLayout({
       </head>
 
       <LanguageProvider>
-        <body className={`${delius.className} antialiased`}>
+        <body className={`${sniglet.className} antialiased`}>
           <TopBar />
           {children}
           <Footer />
