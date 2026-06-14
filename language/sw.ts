@@ -16,7 +16,7 @@ export const sw = {
         takeControl: "Chukua Udhibiti wa",
         yourBiz: "BIASHARA YAKO",
         today: "Leo",
-        heroDesc: "Simamia mauzo, fuatilia madeni, na angalia faida zako moja kwa moja kutoka kwenye simu yako",
+        heroDesc: "Simamia mauzo, fuatilia madeni, na angalia faida zako moja kwa moja kutoka kwenye simu yako, bila daftari wala mahesabu",
         msemo: "Biashara yako, teknolojia yetu",
         demo: "Angalia Demo",
         usedBy: "Inatumika na wafanyabiashara wadogo kote Tanzania",

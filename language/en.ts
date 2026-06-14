@@ -16,7 +16,7 @@ export const en = {
         takeControl: "Take Control of",
         yourBiz: "YOUR BUSINESS",
         today: "Today",
-        heroDesc: "Manage sales, track accounts payable, and view your profits right from your phone",
+        heroDesc: "Manage sales, track accounts payable, and view your profits right from your phone, without notebooks or any calculations",
         msemo: "Your business, our technology",
         demo: "View Demo",
         usedBy: "Used by small businesses across Tanzania",
