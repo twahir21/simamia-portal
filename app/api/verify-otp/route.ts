@@ -17,14 +17,9 @@ const verifySchema = z.object({
 
 // 2. Constants for Security Policies
 const CONFIG = {
-  MAX_VERIFY_ATTEMPTS: 5,
-  // Progressive lockout delays in seconds
-  LOCKOUT_TIERS: [
-    60,         // 1st lock: 1 minute
-    120,        // 2nd lock: 2 minutes
-    300,        // 3rd lock: 5 minutes
-    86400       // 4th lock+: 24 hours
-  ]
+  MAX_VERIFY_ATTEMPTS: 5, // Wrong guesses before 1-hour lockout
+  DEVICE_LOCK_DURATION_SECONDS: 3600, // 1 hour lockout
+  // LOCKOUT_TIERS removed!
 };
 
 export async function POST(request: Request) {
@@ -51,25 +46,36 @@ export async function POST(request: Request) {
     const { identity, channel, otp, deviceId } = validationResult.data;
     const otpKey = `otps:${channel}:${identity}`;
     const lockKey = `device_locks:${deviceId}`;
+    const deviceAbuseKey = `device_abuse_count:${deviceId}`;
 
-    // --- SECURITY CHECK 1: PROGRESSIVE DEVICE LOCKOUT (REDIS) ---
-    const failedAttemptsRaw = await redis.get<number | string>(lockKey);
-    let failedAttempts = failedAttemptsRaw ? Number(failedAttemptsRaw) : 0;
-
-    if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS) {
-      const ttl = await redis.ttl(lockKey);
-      if (ttl > 0) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Too many failed attempts. Device temporarily locked.",
-            retryAfter: ttl,
-          },
-          { status: 429 }
-        );
-      }
+    // --- SECURITY CHECK 1: 24-HOUR DEVICE BAN ---
+    const deviceAbuseCount = await redis.get(deviceAbuseKey);
+    if (Number(deviceAbuseCount) >= 3) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Too many failed attempts. Device temporarily locked for 24 hours.",
+          code: "DEVICE_BANNED"
+        },
+        { status: 429 }
+      );
     }
-    console.log(`⏱️ 4. Device lock evaluated: ${Date.now() - start}ms`);
+
+    // --- SECURITY CHECK 2: 1-HOUR DEVICE LOCKOUT ---
+    const isLocked = await redis.get(lockKey);
+    if (isLocked) {
+      const ttl = await redis.ttl(lockKey);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Device locked due to failed attempts. Try again in ${ttl}s`,
+          retryAfter: ttl,
+          code: "DEVICE_LOCKED"
+        },
+        { status: 429 }
+      );
+    }
+    console.log(`⏱️ 4. Device locks evaluated: ${Date.now() - start}ms`);
 
     // --- FETCH & VALIDATE OTP FROM REDIS ---
     const otpData = await redis.get<{
@@ -79,8 +85,7 @@ export async function POST(request: Request) {
       deviceId: string | null;
       appVersion: string | null;
       createdAt: string;
-      isUsed: boolean;
-      attemptCount?: number; // Optional because it's added on failed entries
+      attemptCount?: number;
     }>(otpKey);
     console.log(`⏱️ 5. OTP record fetched from Redis: ${Date.now() - start}ms`);
 
@@ -91,15 +96,9 @@ export async function POST(request: Request) {
       );
     }
 
-
-    // Guard rails: Device binding check & code-level maximum attempts
+    // Guard rails: Device binding check
     if (otpData.deviceId && otpData.deviceId !== deviceId) {
       return NextResponse.json({ success: false, error: "Invalid verification request" }, { status: 400 });
-    }
-
-    if ((otpData.attemptCount || 0) >= CONFIG.MAX_VERIFY_ATTEMPTS) {
-      await redis.del(otpKey); // Nuclear burn code on max entry exhaustion
-      return NextResponse.json({ success: false, error: "OTP invalidated" }, { status: 400 });
     }
 
     // --- VERIFY CRYPTO HASH ---
@@ -109,54 +108,57 @@ export async function POST(request: Request) {
       // ❌ WRONG OTP PROCESSING BRANCH
       otpData.attemptCount = (otpData.attemptCount || 0) + 1;
 
-      // Increment total device failures and extract the new total
-      failedAttempts = await redis.incr(lockKey);
+      // Check if they hit the max wrong guesses for THIS specific OTP
+      if (otpData.attemptCount >= CONFIG.MAX_VERIFY_ATTEMPTS) {
+        // 1. Burn the OTP immediately
+        await redis.del(otpKey);
 
-      // Apply progressive lockout penalty if they crossed a threshold tier
-      if (failedAttempts >= CONFIG.MAX_VERIFY_ATTEMPTS) {
-        const tierIndex = Math.min(
-          Math.floor(failedAttempts / CONFIG.MAX_VERIFY_ATTEMPTS) - 1,
-          CONFIG.LOCKOUT_TIERS.length - 1
+        // 2. Lock the device for 1 hour
+        await redis.set(lockKey, "locked", { ex: CONFIG.DEVICE_LOCK_DURATION_SECONDS });
+
+        // 3. Increment the 24h abuse tally
+        await redis.incr(deviceAbuseKey);
+        await redis.expire(deviceAbuseKey, 86400).catch(() => { });
+
+        console.log(`⏱️ 6. Device locked due to max failed attempts: ${Date.now() - start}ms`);
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Too many failed attempts. Device locked for 1 hour.",
+            code: "DEVICE_LOCKED"
+          },
+          { status: 429 }
         );
-        const lockWindowSeconds = CONFIG.LOCKOUT_TIERS[tierIndex];
-        await redis.expire(lockKey, lockWindowSeconds);
-      } else {
-        // Keeps the rolling counter alive for at least 15 minutes if not locked out yet
-        await redis.expire(lockKey, 900);
       }
 
-      // Update the incremental attempt count back to the OTP key payload
+      // If not maxed out, just update the attempt count on the existing OTP key
       const remainingTTL = await redis.ttl(otpKey);
       if (remainingTTL > 0) {
         await redis.set(otpKey, JSON.stringify(otpData), { ex: remainingTTL });
       }
 
-      const remainder = failedAttempts % CONFIG.MAX_VERIFY_ATTEMPTS;
-      const remainingAttempts = remainder === 0 ? 0 : CONFIG.MAX_VERIFY_ATTEMPTS - remainder;
+      const remainingAttempts = CONFIG.MAX_VERIFY_ATTEMPTS - otpData.attemptCount;
 
       console.log(`⏱️ 6. Invalid OTP processing completed: ${Date.now() - start}ms`);
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid or expired OTP",
-          message: remainingAttempts > 0
-            ? `${remainingAttempts} attempt${remainingAttempts === 1 ? "" : "s"} remaining before lock.`
-            : "Device locked due to excessive failed entries.",
+          error: "Invalid OTP",
+          message: `${remainingAttempts} attempt${remainingAttempts === 1 ? "" : "s"} remaining before lock.`,
         },
         { status: 400 }
       );
     }
 
     // ---  SUCCESS BRANCH ---
-    // Atomic cleanups: wipe OTP and clear device lock penalties instantly
+    // Atomic cleanups: wipe OTP instantly
     await redis.pipeline()
       .del(otpKey)
-      .del(lockKey)
       .exec();
 
     console.log(`⏱️ 6. Redis success cleanup done: ${Date.now() - start}ms`);
 
-    // --- OFFLOAD FOREBASE LONG-TERM AUDIT PIPELINE ---
+    // --- OFFLOAD FIREBASE LONG-TERM AUDIT PIPELINE ---
     (async () => {
       try {
         await adminDb.collection("otp_logs").add({
