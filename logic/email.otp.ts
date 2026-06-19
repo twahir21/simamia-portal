@@ -8,7 +8,7 @@ export async function SendEmailOTP(identity: string, otp: string) {
 
 
     const { data, error } = await resend.emails.send({
-      from: "Simamia APP <huduma@simamia.co.tz>",
+      from: "Simamia APP <noreply@contact.simamia.co.tz>",
       to: [identity],
       subject: "OTP - Verification",
       react: EmailTemplate({ identity, otp }),
@@ -20,7 +20,7 @@ export async function SendEmailOTP(identity: string, otp: string) {
       return {
         success: false,
         status: 400,
-        error: "Failed to send email",
+        error: "Failed to send Email, Please contact +255 798 700 900 for further help.",
       };
     }
 
