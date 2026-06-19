@@ -22,7 +22,7 @@ const CONFIG = {
     OTP_EXPIRY_SECONDS: 120, // 2 minutes
     MAX_FAILED_ATTEMPTS: 5,
     DEVICE_LOCK_DURATION_SECONDS: 3600, // 1 hour
-    BACKOFF_TIERS: [0, 60, 120, 300, 86400],
+    // BACKOFF_TIERS removed!
 };
 
 // 3. Secure OTP Generation
@@ -55,10 +55,10 @@ export async function POST(request: Request) {
 
         // --- REDIS STEP 4: CHECK DEVICE LOCK ---
         const lockKey = `device_locks:${deviceId}`;
-        const failedAttemptsStr = await redis.get<number | string >(lockKey);
+        const failedAttemptsStr = await redis.get<number | string>(lockKey);
 
         if (failedAttemptsStr && Number(failedAttemptsStr) >= CONFIG.MAX_FAILED_ATTEMPTS) {
-            const ttl = await redis.ttl(lockKey); // Find remaining lock seconds natively
+            const ttl = await redis.ttl(lockKey);
             return NextResponse.json(
                 {
                     success: false,
@@ -71,42 +71,37 @@ export async function POST(request: Request) {
         }
         console.log(`⏱️ 4. Device lock checked: ${Date.now() - start}ms`);
 
-        // --- REDIS STEP 5: CHECK COOLDOWN LIMITS ---
-        const limitsKey = `otp_resend_limits:${channel}:${identity}`;
-        const parsedLimits = await redis.get<{ resendCount: number; lastResendAt: number }>(limitsKey);
+        // --- REDIS STEP 5: SIMPLE RATE LIMITING ---
+        const abuseKey = `otp_abuse_count:${channel}:${identity}`;
+        const abuseCount = await redis.get(abuseKey);
 
-        let resendCount = 0;
-        let lastResendAt = 0;
-
-        if (parsedLimits) {
-            resendCount = parsedLimits.resendCount || 0;
-            lastResendAt = parsedLimits.lastResendAt || 0;
-
-            if (resendCount >= 1) {
-                const tierIndex = Math.min(resendCount - 1, CONFIG.BACKOFF_TIERS.length - 1);
-                const requiredCooldownMs = CONFIG.BACKOFF_TIERS[tierIndex] * 1000;
-                const timeSinceLast = Date.now() - lastResendAt;
-
-                if (timeSinceLast < requiredCooldownMs) {
-                    const remaining = Math.ceil((requiredCooldownMs - timeSinceLast) / 1000);
-                    return NextResponse.json(
-                        {
-                            success: false,
-                            error: `Please wait ${remaining} seconds before requesting another OTP`,
-                            retryAfter: remaining,
-                            code: "RATE_LIMITED"
-                        },
-                        { status: 429 }
-                    );
-                }
-            }
+        // 🚨 NEW: If they have spammed more than 3 times today, block them entirely!
+        if (Number(abuseCount) >= 3) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Too many OTP requests. Please try again after 24 hours."
+                },
+                { status: 429 }
+            );
         }
-        console.log(`⏱️ 5. Resend limits evaluated: ${Date.now() - start}ms`);
+
+        const limitsKey = `otp_limits:${channel}:${identity}`;
+        const acquired = await redis.set(limitsKey, "locked", { ex: 60, nx: true });
+
+        if (!acquired) {
+            await redis.incr(abuseKey);
+            await redis.expire(abuseKey, 86400).catch(() => { });
+            return NextResponse.json(
+                { success: false, error: "Too many requests. Please wait a minute." },
+                { status: 429 }
+            );
+        }
+        console.log(`⏱️ 5. Rate limits evaluated: ${Date.now() - start}ms`);
 
         // --- GENERATE NEW DATA ---
         const otp = generateOTP();
         const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
-        const nextCount = resendCount + 1;
 
         // --- REDIS STEP 6: ATOMIC WRITE ---
         const otpKey = `otps:${channel}:${identity}`;
@@ -120,18 +115,10 @@ export async function POST(request: Request) {
             attemptCount: 0, // Reset verification attempts
         };
 
-        const nextLimitsPayload = {
-            lastResendAt: Date.now(),
-            resendCount: nextCount
-        };
-
         // Execute fast pipelining in Redis to execute changes together
-        // Max TTL for tracking corresponds to highest backoff tier (e.g. 1 day)
-        const maxTrackingTTL = CONFIG.BACKOFF_TIERS[CONFIG.BACKOFF_TIERS.length - 1];
-
+        // (Removed the limitsKey write from the pipeline since we already set it in Step 5)
         await redis.pipeline()
             .set(otpKey, JSON.stringify(otpPayload), { ex: CONFIG.OTP_EXPIRY_SECONDS })
-            .set(limitsKey, JSON.stringify(nextLimitsPayload), { ex: maxTrackingTTL })
             .exec();
 
         console.log(`⏱️ 6. Redis persistence completed: ${Date.now() - start}ms`);
@@ -179,16 +166,12 @@ export async function POST(request: Request) {
         })();
 
         // --- STEP 8: RETURN RESPONSE ---
-        const nextCooldownSec = CONFIG.BACKOFF_TIERS[Math.min(nextCount - 1, CONFIG.BACKOFF_TIERS.length - 1)];
-
         console.log(`🏁 7. Returning response instantly to client! Total elapsed execution time: ${Date.now() - start}ms`);
         return NextResponse.json(
             {
                 success: true,
                 message: `New OTP sent to your ${channel}`,
                 expiresIn: CONFIG.OTP_EXPIRY_SECONDS,
-                resendCount: nextCount,
-                nextResendAfter: nextCooldownSec,
             },
             { status: 200 }
         );

@@ -4,7 +4,6 @@ import crypto from "crypto";
 import { SendEmailOTP } from "@/logic/email.otp";
 import { sendSMSOTP } from "@/logic/sms.otp";
 import { redis } from "@/configs/redis.config";
-import { checkRateLimit } from "@/configs/otp.redis";
 
 
 // 1. Define Validation Schema with Zod
@@ -46,8 +45,26 @@ export async function POST(request: Request) {
         const { identity, channel, deviceId, appVersion } = validationResult.data;
 
         // 3. Rate Limiting Check
-        const isAllowed = await checkRateLimit(identity, channel);
-        if (!isAllowed) {
+        const abuseKey = `otp_abuse_count:${channel}:${identity}`;
+        const abuseCount = await redis.get(abuseKey);
+
+        // 🚨 NEW: If they have spammed more than 3 times today, block them entirely!
+        if (Number(abuseCount) >= 3) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Too many OTP requests. Please try again after 24 hours."
+                },
+                { status: 429 }
+            );
+        }
+
+        const key = `otp_limits:${channel}:${identity}`;
+        const acquired = await redis.set(key, "locked", { ex: 60, nx: true });
+
+        if (!acquired) {
+            await redis.incr(abuseKey);
+            await redis.expire(abuseKey, 86400).catch(() => { });
             return NextResponse.json(
                 { success: false, error: "Too many requests. Please wait a minute." },
                 { status: 429 }
@@ -89,6 +106,7 @@ export async function POST(request: Request) {
                     { status: httpStatus }
                 );
             } catch (error) {
+                await redis.del(`otp_limits:${channel}:${identity}`); // delete rate limit if sms failed
                 return Response.json(
                     {
                         success: false,
@@ -101,9 +119,23 @@ export async function POST(request: Request) {
                 );
             }
         } else if (channel === 'email') {
-            const result = await SendEmailOTP(identity, otp);
+            try{
+                const result = await SendEmailOTP(identity, otp);
 
-            return Response.json(result, { status: result.status });
+                return Response.json(result, { status: result.status });
+            }catch(error) {
+                await redis.del(`otp_limits:${channel}:${identity}`); // delete rate limit if email failed
+                return Response.json(
+                    {
+                        success: false,
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : "Failed to send OTP verification code.",
+                    },
+                    { status: 400 }
+                );
+            }
         } else {
             // Fallback for unsupported channels
             return Response.json(
