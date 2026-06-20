@@ -86,6 +86,7 @@ export async function POST(request: Request) {
       appVersion: string | null;
       createdAt: string;
       attemptCount?: number;
+      isUsed?: boolean;
     }>(otpKey);
     console.log(`⏱️ 5. OTP record fetched from Redis: ${Date.now() - start}ms`);
 
@@ -151,10 +152,14 @@ export async function POST(request: Request) {
     }
 
     // ---  SUCCESS BRANCH ---
-    // Atomic cleanups: wipe OTP instantly
-    await redis.pipeline()
-      .del(otpKey)
-      .exec();
+    // FIX: Mark as used instead of deleting, so the Activation route can read the receipt
+    const remainingTTL = await redis.ttl(otpKey);
+    const ttlToSet = remainingTTL > 0 ? remainingTTL : 120; // Fallback to 120s if TTL is somehow lost
+
+    otpData.isUsed = true;
+    await redis.set(otpKey, JSON.stringify(otpData), { ex: ttlToSet });
+
+    console.log(`⏱️ 6. Redis success: marked as used (TTL: ${ttlToSet}s): ${Date.now() - start}ms`);
 
     console.log(`⏱️ 6. Redis success cleanup done: ${Date.now() - start}ms`);
 

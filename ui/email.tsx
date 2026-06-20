@@ -31,7 +31,7 @@ export default function EmailTemplate({identity,  otp }: EmailTemplateProps) {
 
         <hr style={divider} />
 
-        <p style={footer}>Simamia App - Business Management System</p>
+        <p style={footer}>Simamia App - Your Business, Our Technology.</p>
       </div>
     </div>
   );
