@@ -130,9 +130,12 @@ export async function POST(request: Request) {
             const redisOtpKey = `otps:${channel}:${identity}`;
             console.log(`[Activation] Checking Redis Key: ${redisOtpKey}`);
             
-            const cachedOtpRaw = await redis.get(redisOtpKey);
+            const otpData = await redis.get<{
+                isUsed: boolean;
+                expires: number;
+            }>(redisOtpKey);
 
-            if (!cachedOtpRaw) {
+            if (!otpData) {
                 console.warn("[Activation] Redis: No verification record found");
                 return NextResponse.json(
                     { success: false, verified: false, message: "No verification record found." },
@@ -141,7 +144,7 @@ export async function POST(request: Request) {
             }
 
             console.log("[Activation] Redis: Raw Data Retrieved");
-            const otpData = JSON.parse(cachedOtpRaw as string);
+            // const otpData = JSON.parse(cachedOtpRaw as string);
             console.log("[Activation] Redis: Parsed OTP Data:", { isUsed: otpData.isUsed, expires: otpData.expires });
 
             // Note: Since you're handling validation in a split-second workflow, 
