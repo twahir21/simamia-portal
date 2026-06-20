@@ -108,59 +108,70 @@ export async function POST(request: Request) {
         }
 
         // 3. Redis OTP Verification for Account Types
+        // --- REDIS OTP VERIFICATION for Account Types ---
         if (incomingType === "account") {
             if (!identity || !channel) {
-                console.warn("[Activation] Missing Identity/Channel for Account");
                 return NextResponse.json({
                     success: false,
                     error: "Identity and channel are required for account activation"
                 }, { status: 400 });
             }
 
-            // SECURITY: Prevent account hijacking - device already linked to DIFFERENT account
+            // SECURITY: Prevent account hijacking
             if (existingData?.type === "account" && existingData.identity && existingData.identity !== identity) {
-                console.warn(`[Activation] Blocked: Device linked to ${existingData.identity}, trying ${identity}`);
                 return NextResponse.json({
                     success: false,
                     error: "This device is already linked to a different account"
                 }, { status: 403 });
             }
 
-            // --- REDIS MIGRATION FIX HERE ---
             const redisOtpKey = `otps:${channel}:${identity}`;
-            console.log(`[Activation] Checking Redis Key: ${redisOtpKey}`);
-            
             const otpData = await redis.get<{
-                isUsed: boolean;
-                expires: number;
+                isUsed?: boolean;
+                deviceId?: string | null;
+                identity?: string;
+                channel?: string;
             }>(redisOtpKey);
 
+            // ──────────────────────────────────────────────
+            // STATE MACHINE: Three possible states
+            // ──────────────────────────────────────────────
+
+            // STATE 1: No record at all → user never requested an OTP
             if (!otpData) {
-                console.warn("[Activation] Redis: No verification record found");
+                console.warn("[Activation] No OTP record found in Redis");
                 return NextResponse.json(
-                    { success: false, verified: false, message: "No verification record found." },
-                    { status: 200 } // Retained your original status 200 setup
+                    { success: false, verified: false, message: "No verification record found. Please request and verify an OTP first." },
+                    { status: 400 }
                 );
             }
 
-            console.log("[Activation] Redis: Raw Data Retrieved");
-            // const otpData = JSON.parse(cachedOtpRaw as string);
-            console.log("[Activation] Redis: Parsed OTP Data:", { isUsed: otpData.isUsed, expires: otpData.expires });
-
-            // Note: Since you're handling validation in a split-second workflow, 
-            // the 120-second TTL on Redis handles the absolute expiry automatically.
-            if (otpData.isUsed) {
-                console.warn("[Activation] Redis: Token already used");
+            // STATE 2: Record exists but NOT verified yet → user got the code but hasn't submitted it
+            if (!otpData.isUsed) {
+                console.warn("[Activation] OTP exists but has not been verified yet");
                 return NextResponse.json({
                     success: false,
-                    error: "Verification code has already been used."
+                    error: "OTP has not been verified yet. Please complete OTP verification first.",
+                    verified: false
                 }, { status: 403 });
             }
 
-            // Single-use token enforcement: Delete immediately on successful verification match
+            // STATE 3: isUsed === true → ✅ Verification receipt confirmed!
+            // This is the SUCCESS path. The verify route already did the crypto check.
+            console.log("[Activation] ✅ Verification receipt confirmed (isUsed=true)");
+
+            // SECURITY: Cross-check that the activation request matches the verified identity
+            if (otpData.identity && otpData.identity !== identity) {
+                console.warn(`[Activation] Identity mismatch: verified=${otpData.identity}, requested=${identity}`);
+                return NextResponse.json({
+                    success: false,
+                    error: "Identity mismatch with verified OTP"
+                }, { status: 403 });
+            }
+
+            // Single-use enforcement: CONSUME the receipt now so it can't be replayed
             await redis.del(redisOtpKey);
-            console.log("[Activation] Redis: Token deleted (marked as used)");
-            // ---------------------------------
+            console.log("[Activation] Redis: Verification receipt consumed and deleted");
         }
 
         // 4. Guest-to-Guest Reset Abuse Guard
