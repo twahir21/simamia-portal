@@ -9,7 +9,7 @@ import Features from "@/ui/Features";
 import FAQ from "@/ui/faq";
 import { Righteous } from "next/font/google";
 import WhatsAppButton from "@/ui/whatsapp";
-import { APK_LINK } from "@/const/links.const";
+import { APK_LINK, APK_VERSION } from "@/const/links.const";
 import { useTranslation } from "@/provider/translation";
 import playStoreBadge from "@/public/play.png";
 import HeroSection from "@/ui/hero";
@@ -117,7 +117,7 @@ export default function Hero() {
 
               {/* Badge */}
               <span className="ml-2 px-2 py-0.5 text-[10px] font-bold bg-[#3DDC84] text-slate-900 rounded-full">
-                v1.2
+                {APK_VERSION}
               </span>
             </Link>
 

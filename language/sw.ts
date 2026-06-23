@@ -147,7 +147,7 @@ export const sw = {
     downloadHero: {
         badge: "Inakuja Hivi Karibuni Play Store",
         description: "Mshirika bora zaidi wa kusimamia shughuli za biashara yako. Pata zana za kitaalamu unazohitaji, kiganjani mwako.",
-        version: "Toleo la v1.2.0",
+        version: "Toleo la",
         buttonText: "Pakua APK",
         securityNote: "Upakuaji salama wa moja kwa moja kutoka GitHub",
     },

@@ -147,7 +147,7 @@ export const en = {
     downloadHero: {
         badge: "Coming Soon to Play Store",
         description: "The ultimate solution to manage your daily business operations. Get all the professional tools you need right at your fingertips.",
-        version: "Version v1.2.0",
+        version: "Version",
         buttonText: "Download APK",
         securityNote: "Secure and verified direct download via GitHub",
     },

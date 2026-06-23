@@ -1,7 +1,7 @@
 'use client';
 
 import { Download, Smartphone } from "lucide-react";
-import { APK_LINK } from "@/const/links.const";
+import { APK_LINK, APK_VERSION } from "@/const/links.const";
 import Image from "next/image";
 import { useTranslation } from "@/provider/translation";
 
@@ -51,7 +51,7 @@ export default function DownloadPage() {
             <Download className="group-hover:animate-bounce" size={28} />
             <div className="text-left">
               <span className="block text-xs uppercase tracking-[0.2em] font-bold opacity-70">
-                {t.downloadHero.version}
+                {t.downloadHero.version} {APK_VERSION}
               </span>
               <span className="text-2xl font-black">
                 {t.downloadHero.buttonText}
@@ -61,7 +61,7 @@ export default function DownloadPage() {
 
           <div className="mt-6 flex flex-col items-center space-y-2">
             <p className="text-sm font-semibold text-slate-500">
-              76MB • Android 8.0+
+              50MB • Android 8.0+
             </p>
             <p className="text-xs text-slate-400">
               {t.downloadHero.securityNote}
