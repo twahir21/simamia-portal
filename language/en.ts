@@ -229,7 +229,8 @@ export const en = {
     },
 
     about: {
-      founded: "Founded Late 2025"  
+      founded: "About Us",
+      story: "Our Story" 
     }, 
     aboutHero: {
         tagline: "Empowering Tanzanian Businesses",

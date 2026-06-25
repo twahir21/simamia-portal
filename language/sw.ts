@@ -228,7 +228,8 @@ export const sw = {
         searchPlaceholder: "Tafuta 'jinsi ya ku scan' au 'kuangalia faida'...",
     },
     about: {
-        founded: "Ilianzishwa mwishoni mwa 2025"
+        founded: "Kuhusu Sisi",
+        story: "Hadithi Yetu"
     }, 
     aboutHero: {
         tagline: "Kuziwezesha Biashara za Kitanzania",

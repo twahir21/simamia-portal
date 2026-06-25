@@ -13,6 +13,7 @@ import { APK_LINK, APK_VERSION } from "@/const/links.const";
 import { useTranslation } from "@/provider/translation";
 import playStoreBadge from "@/public/play.png";
 import HeroSection from "@/ui/hero";
+import HowItWorks from "@/ui/howItworks";
 
 const zain = Righteous({
   weight: "400",
@@ -134,6 +135,9 @@ export default function Hero() {
           </div>
         </div>
       </section>
+
+      {/* How It Works - Visual Flow */}
+      <HowItWorks />
 
       {/* Faq */}
       <FAQ />

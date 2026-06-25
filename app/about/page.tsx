@@ -4,6 +4,8 @@ import { PHONE_LINK, PHONE_SUPPORT } from "@/const/links.const";
 import { useLanguage } from "@/provider/language-provider";
 import { useTranslation } from "@/provider/translation";
 import HowItWorks from "@/ui/howItworks";
+import PageHero from "@/ui/pageHero";
+import HadithiYetu from "@/ui/Story";
 import { motion } from "framer-motion";
 import {
   Smartphone,
@@ -43,73 +45,36 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-white">
+
       {/* Hero Section */}
-      <section className="relative bg-linear-to-br from-sky-50 via-white to-slate-50 pt-20 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-sky-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-slate-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 translate-y-1/2 -translate-x-1/2" />
-
-        <div className="relative max-w-5xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-sky-100 text-sky-800 rounded-full text-sm font-semibold mb-6"
-          >
-            <span className="w-2 h-2 bg-sky-600 rounded-full animate-pulse" />
-            {t.about.founded}
-          </motion.div>
-
-          <motion.h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            SIMAMIA <span className="text-sky-600">APP</span>
-          </motion.h1>
-
-          <motion.p
-            className="text-xl sm:text-2xl text-slate-600 mb-4 max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            {t.aboutHero.tagline}
-          </motion.p>
-
-          <motion.p
-            className="text-lg text-slate-500 max-w-2xl mx-auto mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
+      <PageHero
+        tag={t.about.founded}
+        title={t.about.story}
+        subtitle={t.aboutHero.tagline}
+        description={
+          <>
             {t.aboutHero.description}
-          </motion.p>
+          </>
+        }
+        ctas={[
+          {
+            label: t.aboutHero.downloadBtn,
+            href: "/user-guide.pdf",
+            icon: Download,
+            iconPosition: "left",
+          },
+          {
+            label: t.aboutHero.learnMoreBtn,
+            href: "/#how-it-works",
+            variant: "secondary",
+            icon: ArrowRight,
+            iconPosition: "right",
+          },
+        ]}
+      />
 
-          <motion.div
-            className="flex flex-wrap justify-center gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <Link
-              href="/user-guide.pdf"
-              download
-              className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5"
-            >
-              <Download className="w-5 h-5" />
-              {t.aboutHero.downloadBtn}
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-200 hover:border-sky-300 text-slate-700 hover:text-sky-700 font-semibold rounded-xl transition-all duration-300"
-            >
-              {t.aboutHero.learnMoreBtn}
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </motion.div>
-        </div>
-      </section>
+      <HadithiYetu />
+
 
       {/* Mission & Story Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
@@ -268,9 +233,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      {/* How It Works - Visual Flow */}
-      <HowItWorks />
 
       {/* Tech Stack */}
       <section className="py-16 bg-slate-50">
