@@ -25,11 +25,20 @@ const team: TeamMember[] = [
     },
     {
         name: "Suleiman Masoud",
-        role: "Chief Sponsor",
-        roleSw: "Mdhamini Mkuu",
-        bio: "The backbone of our mission. Providing strategic guidance and unwavering support to help Simamia grow and reach more merchants.",
+        role: "Mdhamini Mkuu",
+        roleSw: "Mjumbe wa Bodi",
+        bio: "Nguzo kuu ya malengo yetu. Anatoa mwongozo wa kimkakati na usaidizi thabiti katika kusimamia ukuaji wa Simamia na kuhakikisha inawafikia wafanyabiashara wengi zaidi.",
         avatarBg: "bg-sky-500",
         initials: "SM",
+        socials: { github: "#", linkedin: "#" },
+    },
+    {
+        name: "Emmanuel Sangitho",
+        role: "Mdhamini",
+        roleSw: "Mjumbe wa Bodi",
+        bio: "Nguzo thabiti katika dira na uongozi wetu. Anachangia katika maamuzi makuu ya kimkakati na kutoa sapoti ya hali ya juu ili kuiwezesha Simamia kuwa mfumo kiongozi sokoni.",
+        avatarBg: "bg-sky-500",
+        initials: "ES",
         socials: { github: "#", linkedin: "#" },
     },
     {
