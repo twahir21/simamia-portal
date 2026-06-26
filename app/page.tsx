@@ -7,7 +7,6 @@ import AOS from "aos";
 import ProblemSolution from "@/ui/ProblemSoln";
 import Features from "@/ui/Features";
 import { Righteous } from "next/font/google";
-import WhatsAppButton from "@/ui/whatsapp";
 import { APK_LINK, APK_VERSION } from "@/const/links.const";
 import { useTranslation } from "@/provider/translation";
 import playStoreBadge from "@/public/play.png";
@@ -185,7 +184,6 @@ export default function Hero() {
         </div>
       </motion.div>
 
-      <WhatsAppButton />
 
       <script
         type="application/ld+json"

@@ -4,7 +4,8 @@ export const en = {
         about: "About Us",
         help: "Help Center",
         download: "Download",
-        smart: "Smart Management"
+        smart: "Smart Management",
+        contact: "Contact Us"
     },
 
     hero: {
@@ -129,8 +130,15 @@ export const en = {
         ourSystem: "Our Platform",
         mobileApp: "Mobile Application (App)",
         account: "Account Profile",
+        download: "Download",
+        pricing: "Pricing",
+        company: "Company",
+        about: "About Us",
+        blog: "Blog",
+        contactPage: "Contact",
         support: "Support",
         helpCenter: "Help Center",
+        faqs: "FAQs",
         privacyPolicy: "Privacy Policy",
         termsOfService: "Terms of Service",
         contactUs: "Contact Us",

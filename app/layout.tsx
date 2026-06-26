@@ -8,6 +8,7 @@ import { faqSchema } from "@/const/faq.const";
 import { LanguageProvider } from "@/provider/language-provider";
 import Script from "next/script";
 import CustomPageTracker from "@/logs/page-analytics";
+import WhatsAppButton from "@/ui/whatsapp";
 
 // 2. Configure the font
 const sniglet = Sniglet({
@@ -183,6 +184,9 @@ export default function RootLayout({
           <Toaster position="top-right" richColors />
           {/* Render the tracking component globally */}
           <CustomPageTracker />
+
+          <WhatsAppButton />
+
         </body>
       </LanguageProvider>
     </html>

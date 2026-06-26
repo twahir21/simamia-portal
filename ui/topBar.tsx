@@ -25,6 +25,10 @@ export const TopBar = () => {
       label: t.nav.about,
     },
     {
+      href: "/contact",
+      label: t.nav.contact,
+    },
+    {
       href: "/help-center",
       label: t.nav.help,
     },

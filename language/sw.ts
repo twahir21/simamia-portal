@@ -4,7 +4,8 @@ export const sw = {
         about: "Kuhusu Sisi",
         help: "Kituo cha Msaada",
         download: "Pakua",
-        smart: "Usimamizi wa Kisasa"
+        smart: "Usimamizi wa Kisasa",
+        contact: "Wasiliana Nasi"
     },
 
     hero: {
@@ -125,16 +126,23 @@ export const sw = {
     },
 
     footer: {
-        brandDesc: "Mfumo bora zaidi wa usimamizi wa biashara kwa ajili ya kufuatilia madeni, faida, matumizi na mauzo kwa urahisi.",
-        ourSystem: "Mfumo wetu",
+        brandDesc: "Mfumo bora zaidi Tanzania wa usimamizi wa biashara kwa ajili ya kufuatilia madeni, faida, matumizi na mauzo kwa urahisi.",
+        ourSystem: "Mfumo Wetu",
         mobileApp: "Programu ya Simu (App)",
         account: "Akaunti",
+        download: "Pakua",
+        pricing: "Bei",
+        company: "Kampuni",
+        about: "Kuhusu Sisi",
+        blog: "Blogu",
+        contactPage: "Wasiliana Nasi",
         support: "Msaada",
         helpCenter: "Kituo cha Msaada",
+        faqs: "Maswali na Majibu",
         privacyPolicy: "Sera ya Faragha",
-        termsOfService: "Masharti ya Matumizi",
+        termsOfService: "Masharti ya Huduma",
         contactUs: "Wasiliana Nasi",
-        callUs: "Tupigie kupitia:",
+        callUs: "Tupigie simu:",
         rightsReserved: "Haki zote zimehifadhiwa.",
     },
 

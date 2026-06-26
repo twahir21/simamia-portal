@@ -47,6 +47,9 @@ export const metadata: Metadata = {
     description:
       "Gundua jinsi Simamia inavyosaidia wafanyabiashara kupitia POS software katika Kiswahili na app ya kudhibiti inventory. Kuanzia kusimamia stoki ya duka hadi daftari la madeni kidijitali na mfumo wa kutoa risiti, tunarahisisha kurekodi mauzo bila mtandao kwenye mfumo salama wa duka wetu.",
   },
+  alternates: {
+    canonical: "/about",
+  }
 };
 
 export default function aboutScreen () {

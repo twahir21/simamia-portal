@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Download Simamia App — Pata POS ya Mkononi Leo",
     description: "Rahisisha mauzo yako. Pakua programu ya kusimamia biashara kwenye simu yako sasa.",
+  }, 
+  alternates: {
+    canonical: "/download",
   }
 };
 

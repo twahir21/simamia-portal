@@ -11,6 +11,9 @@ export const metadata: Metadata = {
         "App ya biashara ya Kiswahili",
         "POS software katika Kiswahili"
     ],
+    alternates: {
+        canonical: "/faqs",
+    }
 };
 
 export default function FaqScreen () {

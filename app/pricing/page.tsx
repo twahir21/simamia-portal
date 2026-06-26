@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Bei na Vifurushi vya Simamia App — Chagua Kifurushi Chako",
     description: "Anza kutumia app bora ya biashara Tanzania kwa bei nafuu kabisa au anza na toleo la bure.",
+  },
+  alternates: {
+    canonical: "/pricing",
   }
 };
 
