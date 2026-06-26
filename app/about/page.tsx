@@ -5,7 +5,10 @@ import { useLanguage } from "@/provider/language-provider";
 import { useTranslation } from "@/provider/translation";
 import HowItWorks from "@/ui/howItworks";
 import PageHero from "@/ui/pageHero";
+import SafariYetu from "@/ui/SafariYetu";
 import HadithiYetu from "@/ui/Story";
+import TeamSection from "@/ui/Team";
+import Testimonials from "@/ui/Testimonials";
 import { motion } from "framer-motion";
 import {
   Smartphone,
@@ -74,6 +77,8 @@ export default function AboutPage() {
       />
 
       <HadithiYetu />
+
+      <SafariYetu />
 
 
       {/* Mission & Story Section */}
@@ -234,6 +239,8 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <TeamSection />
+
       {/* Tech Stack */}
       <section className="py-16 bg-slate-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -270,6 +277,8 @@ export default function AboutPage() {
           </motion.div>
         </div>
       </section>
+
+      <Testimonials />
 
       {/* Contact Section */}
       <section className="py-10 px-4 sm:px-6 lg:px-8 w-full mx-auto">
