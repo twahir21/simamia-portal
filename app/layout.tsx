@@ -153,7 +153,18 @@ export default function RootLayout({
                     "Offline mode, Mauzo na Matumizi, Udhibiti wa Stoki, Usimamizi wa Madeni, Ripoti za Faida",
                   publisher: {
                     "@type": "Organization",
+                    "@id": "https://simamia.co.tz/#organization",
                     name: "Simamia App",
+                    url: "https://simamia.co.tz",
+                    logo: "https://simamia.co.tz/og-simamia.webp",
+                    telephone: "+255798700900",
+                    address: {
+                      "@type": "PostalAddress",
+                      "streetAddress": "27a Kurasini Rd", // <<-- WEKA MTAA/ENEO ULILOJAZA KWENYE GOOGLE BUSINESS PROFILE
+                      "addressLocality": "Dar es Salaam",
+                      "addressRegion": "Dar es Salaam",
+                      "addressCountry": "TZ"
+                    }
                   },
                   offers: {
                     "@type": "Offer",

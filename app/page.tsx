@@ -184,27 +184,6 @@ export default function Hero() {
         </div>
       </motion.div>
 
-
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: "Simamia",
-            applicationCategory: "BusinessApplication",
-            operatingSystem: "Android",
-            offers: {
-              "@type": "Offer",
-              price: "0",
-              priceCurrency: "USD",
-            },
-            description:
-              "Offline-first business management app for sales, expenses, debts, and stock tracking.",
-            url: "https://simamia.co.tz",
-          }),
-        }}
-      />
     </>
   );
 }
