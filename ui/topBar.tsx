@@ -51,7 +51,7 @@ export const TopBar = () => {
 
           <div className="leading-none">
             <h1 className="text-lg font-bold tracking-tight text-slate-900">
-              Simamia
+              Simamia App
             </h1>
             <span className="text-xs font-medium text-sky-600">
               {t.nav.smart}

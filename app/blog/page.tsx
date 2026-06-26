@@ -14,10 +14,12 @@ import {
   TrendingUp,
   Filter,
   ChevronDown,
-  Sparkles,
   BookOpen,
+  Flame,
 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { APK_LINK } from "@/const/links.const";
+import PageHero from "@/ui/pageHero";
 
 interface BlogPost {
   id: string;
@@ -168,10 +170,7 @@ export default function BlogPage() {
     });
   }, [selectedCategory, searchQuery]);
 
-  const featuredPost = useMemo(
-    () => blogPosts.find((p) => p.featured) || blogPosts[0],
-    [],
-  );
+
   const trendingPosts = useMemo(
     () =>
       [...blogPosts]
@@ -202,130 +201,20 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-sky-500 selection:text-white">
-      {/* Decorative Blur Backdrops */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-0 right-0 w-150 h-150 bg-linear-to-br from-sky-200/30 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-1/4 left-0 w-100 h-100 bg-linear-to-tr from-blue-100/30 to-transparent rounded-full blur-3xl -translate-x-1/4" />
-      </div>
 
       {/* Hero Section */}
-      <section className="relative pt-28 pb-16 px-4 sm:px-6 lg:px-8 z-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-12 gap-12 items-center">
-            {/* Left Headline Column */}
-            <div className="space-y-6 lg:col-span-7">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-sky-50 border border-sky-200/70 rounded-full"
-              >
-                <Sparkles className="w-4 h-4 text-sky-600 shrink-0" />
-                <span className="text-xs font-semibold text-sky-800 tracking-wide">
-                  Fresh insights for Tanzanian retail
-                </span>
-              </motion.div>
+      <PageHero
+        tag="Fresh insights for Tanzanian retail"
+        title="Your Knowledge Base"
+        description={
+          <>
+            Practical execution manuals, local retail growth playbooks, and structural financial tips designed to scale your duka operations safely.
+          </>
+        }
+      />
 
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
-                className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900"
-              >
-                The{" "}
-                <span className="text-sky-600 bg-linear-to-r from-sky-600 to-blue-600 bg-clip-text">
-                  SIMAMIA APP
-                </span>{" "}
-                Knowledge Base
-              </motion.h1>
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-lg text-slate-600 leading-relaxed max-w-xl"
-              >
-                Practical execution manuals, local retail growth playbooks, and
-                structural financial tips designed to scale your{" "}
-                <span className="font-semibold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-md">
-                  duka
-                </span>{" "}
-                operations safely.
-              </motion.p>
 
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.15 }}
-                className="flex items-center gap-4 pt-2"
-              >
-                <div className="flex -space-x-2.5">
-                  {["JS", "SM", "AK", "MT"].map((initials, i) => (
-                    <div
-                      key={i}
-                      className="w-9 h-9 rounded-full bg-linear-to-br from-slate-700 to-slate-900 border-2 border-white flex items-center justify-center text-white text-[10px] font-bold shadow-xs shrink-0"
-                    >
-                      {initials}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-500 font-medium">
-                  Read by over{" "}
-                  <span className="text-slate-800 font-bold">2,500+</span>{" "}
-                  business operators weekly
-                </p>
-              </motion.div>
-            </div>
-
-            {/* Right Side Featured Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 80, damping: 16 }}
-              className="lg:col-span-5 relative"
-            >
-              <div className="absolute -inset-2 bg-linear-to-r from-sky-500 to-blue-500 rounded-3xl blur-xl opacity-10" />
-              <div className="relative bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/60 overflow-hidden group">
-                <div className="h-48 bg-linear-to-br from-sky-600 via-sky-500 to-slate-800 p-6 flex flex-col justify-between relative">
-                  <div className="absolute inset-0 bg-[radial-linear(ellipse_at_top_right,rgba(255,255,255,0.15),transparent)] pointer-events-none" />
-                  <span className="self-start px-2.5 py-1 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white text-[10px] font-bold uppercase tracking-wider">
-                    Featured Article
-                  </span>
-                  <h3 className="text-xl font-bold text-white tracking-tight line-clamp-2 drop-shadow-xs group-hover:text-sky-100 transition-colors">
-                    <Link href={`/blog/${featuredPost.slug}`}>
-                      {featuredPost.title}
-                    </Link>
-                  </h3>
-                </div>
-                <div className="p-6 bg-white">
-                  <p className="text-slate-600 text-sm mb-5 leading-relaxed line-clamp-2">
-                    {featuredPost.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-sky-100 flex items-center justify-center text-sky-700 text-xs font-bold">
-                        {featuredPost.author
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </div>
-                      <span className="text-xs font-semibold text-slate-700">
-                        {featuredPost.author}
-                      </span>
-                    </div>
-                    <Link
-                      href={`/blog/${featuredPost.slug}`}
-                      className="inline-flex items-center gap-1.5 text-sky-600 hover:text-sky-700 text-xs font-bold uppercase tracking-wider group/link"
-                    >
-                      Read Now
-                      <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
 
       {/* Sticky Management Controls */}
       <section className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs py-4 px-4 sm:px-6 lg:px-8 transition-all">
@@ -356,11 +245,10 @@ export default function BlogPage() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                  selectedCategory === category
-                    ? "bg-slate-950 text-white border-slate-950 shadow-xs"
-                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
-                }`}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${selectedCategory === category
+                  ? "bg-slate-950 text-white border-slate-950 shadow-xs"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
               >
                 {category}
               </button>
@@ -398,11 +286,10 @@ export default function BlogPage() {
                           setSelectedCategory(category);
                           setIsFilterOpen(false);
                         }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                          selectedCategory === category
-                            ? "bg-sky-600 text-white"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${selectedCategory === category
+                          ? "bg-sky-600 text-white"
+                          : "bg-slate-100 text-slate-600"
+                          }`}
                       >
                         {category}
                       </button>
@@ -640,41 +527,49 @@ export default function BlogPage() {
         </div>
       </section>
 
-      {/* Global Bottom Funnel CTA */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-slate-900 rounded-3xl p-8 sm:p-12 text-center border border-slate-800 shadow-xl relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-[radial-linear(ellipse_at_top,rgba(14,165,233,0.12),transparent_65%)] pointer-events-none" />
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-3">
-              Ready to Transform Your Duka?
-            </h2>
-            <p className="text-slate-400 text-sm max-w-xl mx-auto mb-8 leading-relaxed">
-              Ditch the paper books. Take control of your store revenue metrics
-              instantly with SIMAMIA APP — completely offline capable.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href="/download"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs rounded-xl transition shadow-lg shadow-sky-500/20 uppercase tracking-wider"
-              >
-                Download Mobile POS
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl border border-slate-700/80 transition uppercase tracking-wider"
-              >
-                Contact Support Team
-              </Link>
-            </div>
-          </motion.div>
+
+      {/* Bottom CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="w-full bg-linear-to-br from-sky-700 to-sky-800 py-8 sm:py-10 text-center relative overflow-hidden"
+      >
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
+
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/20 border border-sky-500/30 rounded-full text-xs font-bold text-sky-300 tracking-wide uppercase mb-4">
+            <Flame className="w-3.5 h-3.5" />
+            Anza Leo Bila Malipo
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-white mb-3">
+            Ready to Transform Your Duka?
+          </h2>
+          <p className="text-sm text-white max-w-xl mx-auto mb-6 leading-relaxed">
+            Ditch the paper books. Take control of your store revenue metrics
+            instantly with SIMAMIA APP — completely offline capable.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <a
+              href={APK_LINK}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-500/20"
+            >
+              Download Mobile POS
+              <ArrowRight className="w-4 h-4" />
+            </a>
+
+            <a
+              href="/faqs"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition backdrop-blur-sm"
+            >
+              Ukurasa wa Maswali
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
         </div>
-      </section>
+      </motion.div>
     </div>
   );
 }

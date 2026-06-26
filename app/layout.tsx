@@ -19,10 +19,9 @@ const sniglet = Sniglet({
 export const metadata: Metadata = {
   title: {
     default: "Simamia App — Rahisisha Uendeshaji wa Biashara Yako",
-    template: "%s | Simamia",
+    template: "%s | App Bora ya Biashara na POS Tanzania",
   },
-  description:
-    "Simamia ni programu rahisi ya kusimamia biashara. Rekodi mauzo, matumizi, madeni, na stoki (inventory) hata bila mtandao. Salama, haraka, na maalum kwa wafanyabiashara.",
+  description: "Simamia App ni programu ya kusimamia biashara na mfumo wa mauzo ya duka unaokusaidia kusimamia stoki ya duka, kurekodi matumizi, na kufuatilia daftari la madeni kidijitali kwa urahisi. Chukua udhibiti wa biashara yako leo: kurekodi mauzo bila mtandao (offline) na kujua faida na hasara ya biashara yako moja kwa moja kutoka kwenye simu au POS ya mkononi, bila daftari wala mahesabu magumu. Simamia App — Biashara yako, teknolojia yetu.",
 
   keywords: [
     "Simamia",
