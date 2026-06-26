@@ -144,7 +144,7 @@ export default function RootLayout({
                   "@id": "https://simamia.co.tz/#application",
                   name: "Simamia App",
                   applicationCategory: "BusinessApplication",
-                  operatingSystem: "Android",
+                  operatingSystem: "Windows, macOS, Linux, Android, iOS",
                   description:
                     "Programu nyepesi ya Kiswahili ya kusimamia biashara, mauzo, stoki na madeni bila bando (offline) kwa wafanyabiashara wa Tanzania.",
                   url: "https://simamia.co.tz",
