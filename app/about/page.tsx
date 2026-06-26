@@ -1,9 +1,7 @@
 "use client";
 
-import { PHONE_LINK, PHONE_SUPPORT } from "@/const/links.const";
 import { useLanguage } from "@/provider/language-provider";
 import { useTranslation } from "@/provider/translation";
-import HowItWorks from "@/ui/howItworks";
 import PageHero from "@/ui/pageHero";
 import SafariYetu from "@/ui/SafariYetu";
 import HadithiYetu from "@/ui/Story";
@@ -17,14 +15,13 @@ import {
   TrendingUp,
   MapPin,
   Download,
-  Mail,
-  Phone,
   ArrowRight,
   Shield,
   Users,
   BarChart3,
+  MessageCircle,
+  Sparkles,
 } from "lucide-react";
-import Link from "next/link";
 
 export default function AboutPage() {
 
@@ -280,39 +277,50 @@ export default function AboutPage() {
 
       <Testimonials />
 
-      {/* Contact Section */}
-      <section className="py-10 px-4 sm:px-6 lg:px-8 w-full mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="bg-linear-to-br from-sky-600 to-sky-700 rounded-3xl p-8 sm:p-12 text-center text-white shadow-2xl shadow-sky-500/25"
-        >
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            {t.getInTouch.title}
-          </h2>
-          <p className="text-sky-100 text-lg mb-8 max-w-xl mx-auto">
-            {t.getInTouch.subtitle}
-          </p>
+      {/* Bottom CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="w-full bg-linear-to-br from-sky-700 to-sky-800 py-8 sm:py-10 text-center relative overflow-hidden"
+      >
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
 
-          <div className="flex flex-col sm:flex-row justify-center gap-6 mb-8">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/20 border border-sky-500/30 rounded-full text-xs font-bold text-sky-300 tracking-wide uppercase mb-4">
+            <Sparkles className="w-3.5 h-3.5" />
+            Hujaona Jibu Lako?
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-white mb-3">
+            Wasiliana Nasi Moja kwa Moja
+          </h2>
+          <p className="text-sm text-white max-w-xl mx-auto mb-6 leading-relaxed">
+            Timu yetu ya usaidizi iko tayari kukusaidia. Tupigie simu, tutumie ujumbe WhatsApp,
+            au tembelea ofisi yetu Dar es Salaam.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
-              href="mailto:huduma@simamia.co.tz"
-              className="inline-flex items-center justify-center gap-3 px-6 py-4 bg-white text-sky-700 rounded-xl font-semibold hover:bg-sky-50 transition-colors duration-300"
+              href="https://wa.me/255798700900?text=Habari%2C%20nina%20maswali%20kuhusu%20Simamia%20App"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-lg shadow-emerald-500/20"
             >
-              <Mail className="w-5 h-5" />
-              huduma@simamia.co.tz
+              <MessageCircle className="w-4 h-4" />
+              Tuma WhatsApp
             </a>
+
             <a
-              href={`${PHONE_LINK}`}
-              className="inline-flex items-center justify-center gap-3 px-6 py-4 bg-sky-800 text-white rounded-xl font-semibold hover:bg-sky-900 transition-colors duration-300"
+              href="/faqs"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition backdrop-blur-sm"
             >
-              <Phone className="w-5 h-5" />
-              {PHONE_SUPPORT}
+              Ukurasa wa Maswali
+              <ArrowRight className="w-4 h-4" />
             </a>
           </div>
-        </motion.div>
-      </section>
+        </div>
+      </motion.div>
     </div>
   );
 }
