@@ -137,6 +137,7 @@ async function requireAdmin(
     }
 
     // Role gate — only admins may create users
+    console.log("Claims: ", claims, claims.role)
     if (claims.role !== "Admin") {
         return NextResponse.json(
             {
