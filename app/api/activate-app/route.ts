@@ -2,11 +2,27 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/firebase/admin.firebase";
 import z from "zod";
 import crypto from "crypto";
-import { redis } from "@/configs/redis.config"; // 1. Import Redis instance
+import { redis } from "@/configs/redis.config";
 
 // ============================================================================
 // Types & Config
 // ============================================================================
+
+type UserRole = "admin" | "manager" | "cashier";
+
+interface UserRecord {
+    userId: string;
+    identity: string;
+    channel: "phone" | "email";
+    role: UserRole;
+    shopId: string;
+    status: "active" | "suspended";
+    createdAt: number;
+    updatedAt: number;
+    lastLoginAt: number;
+    displayName: string | null;
+    deviceIds: string[];
+}
 
 interface ActivationData {
     id: string; // deviceId
@@ -16,6 +32,10 @@ interface ActivationData {
     gracePeriodEnd: number;
     fingerprint: string;
     v: number;
+    // Account-only fields (undefined for guests)
+    role?: UserRole;
+    shopId?: string;
+    userId?: string;
 }
 
 const TOKEN_VERSION = 1;
@@ -58,6 +78,81 @@ function createFingerprint(deviceId: string, platform: string): string {
     return crypto.createHash("sha256").update(seed).digest("hex");
 }
 
+function generateShopId(): string {
+    return crypto.randomUUID();
+}
+
+/**
+ * Derives a stable Firestore doc ID from the user's identity.
+ * Using a hash keeps the key short and avoids special-char issues with
+ * phone numbers or email addresses used directly as doc IDs.
+ */
+function deriveUserId(identity: string): string {
+    return crypto.createHash("sha256").update(identity).digest("hex").slice(0, 32);
+}
+
+// ============================================================================
+// User Table Logic
+// ============================================================================
+
+/**
+ * Fetches an existing user or creates a brand-new admin user.
+ * Returns the full UserRecord and whether it was just created.
+ */
+async function getOrCreateUser(
+    identity: string,
+    channel: "phone" | "email",
+    deviceId: string,
+    now: number
+): Promise<{ user: UserRecord; isNew: boolean }> {
+    const userId = deriveUserId(identity);
+    const userRef = adminDb.collection("users").doc(userId);
+    const snap = await userRef.get();
+
+    if (snap.exists) {
+        const data = snap.data() as UserRecord;
+
+        // Check account isn't suspended
+        if (data.status === "suspended") {
+            throw Object.assign(new Error("Account suspended"), { code: "SUSPENDED" });
+        }
+
+        // Track this device against the user (union so no duplicates)
+        if (!data.deviceIds?.includes(deviceId)) {
+            await userRef.update({
+                deviceIds: [...(data.deviceIds ?? []), deviceId],
+                lastLoginAt: now,
+                updatedAt: now,
+            });
+        } else {
+            await userRef.update({ lastLoginAt: now, updatedAt: now });
+        }
+
+        return { user: { ...data, userId }, isNew: false };
+    }
+
+    // ── Brand-new user: first ever → becomes admin with a fresh shop ──
+    const shopId = generateShopId();
+    const newUser: UserRecord = {
+        userId,
+        identity,
+        channel,
+        role: "admin",          // First user always gets admin
+        shopId,
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+        lastLoginAt: now,
+        displayName: null,
+        deviceIds: [deviceId],
+    };
+
+    await userRef.set(newUser);
+    console.log(`[Activation] Created new admin user: ${userId}, shopId: ${shopId}`);
+
+    return { user: newUser, isNew: true };
+}
+
 // ============================================================================
 // API Route
 // ============================================================================
@@ -75,54 +170,66 @@ export async function POST(request: Request) {
             channel: z.enum(["phone", "email"]).optional(),
             appVersion: z.string(),
             platform: z.enum(["ios", "android", "windows", "macos", "web"]),
-            isGuest: z.boolean()
+            isGuest: z.boolean(),
         });
 
         const validation = schema.safeParse(body);
         if (!validation.success) {
             console.warn("[Activation] Validation Failed:", validation.error.message);
-            return NextResponse.json({ success: false, error: validation.error.message }, { status: 400 });
+            return NextResponse.json(
+                { success: false, error: validation.error.message },
+                { status: 400 }
+            );
         }
 
         const { deviceId, identity, channel, appVersion, platform, isGuest } = validation.data;
         const now = Date.now();
         const incomingType: "guest" | "account" = isGuest ? "guest" : "account";
-        
+
         console.log(`[Activation] Processing Type: ${incomingType} for Device: ${deviceId}`);
 
-        // 2. Fetch Existing Registration First to Make Security Decisions (Stays in Firestore)
+        // 2. Fetch Existing Registration
         const regRef = adminDb.collection("registrations").doc(deviceId);
         const existingSnap = await regRef.get();
         const existingData = existingSnap.exists ? existingSnap.data() : null;
-        
-        console.log("[Activation] Existing Data Found:", !!existingData, existingData ? `(Type: ${existingData.type})` : "");
 
-        // CRITICAL SECURITY FIX: Strict one-way upgrade path
-        // If they are already an account, they cannot downgrade/request a guest token.
+        console.log(
+            "[Activation] Existing Registration:",
+            !!existingData,
+            existingData ? `(Type: ${existingData.type})` : ""
+        );
+
+        // 3. Security: block account → guest downgrade
         if (existingData?.type === "account" && incomingType === "guest") {
             console.warn("[Activation] Blocked: Account attempting Guest downgrade");
-            return NextResponse.json({
-                success: false,
-                error: "This device is already linked to an account. Guest mode is disabled."
-            }, { status: 403 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "This device is already linked to an account. Guest mode is disabled.",
+                },
+                { status: 403 }
+            );
         }
 
-        // 3. Redis OTP Verification for Account Types
-        // --- REDIS OTP VERIFICATION for Account Types ---
+        // 4. OTP Verification for Account activations
         if (incomingType === "account") {
             if (!identity || !channel) {
-                return NextResponse.json({
-                    success: false,
-                    error: "Identity and channel are required for account activation"
-                }, { status: 400 });
+                return NextResponse.json(
+                    { success: false, error: "Identity and channel are required for account activation" },
+                    { status: 400 }
+                );
             }
 
-            // SECURITY: Prevent account hijacking
-            if (existingData?.type === "account" && existingData.identity && existingData.identity !== identity) {
-                return NextResponse.json({
-                    success: false,
-                    error: "This device is already linked to a different account"
-                }, { status: 403 });
+            // Prevent device hijacking
+            if (
+                existingData?.type === "account" &&
+                existingData.identity &&
+                existingData.identity !== identity
+            ) {
+                return NextResponse.json(
+                    { success: false, error: "This device is already linked to a different account" },
+                    { status: 403 }
+                );
             }
 
             const redisOtpKey = `otps:${channel}:${identity}`;
@@ -133,114 +240,123 @@ export async function POST(request: Request) {
                 channel?: string;
             }>(redisOtpKey);
 
-            // ──────────────────────────────────────────────
-            // STATE MACHINE: Three possible states
-            // ──────────────────────────────────────────────
-
-            // STATE 1: No record at all → user never requested an OTP
             if (!otpData) {
-                console.warn("[Activation] No OTP record found in Redis");
                 return NextResponse.json(
-                    { success: false, verified: false, message: "No verification record found. Please request and verify an OTP first." },
+                    {
+                        success: false,
+                        verified: false,
+                        message: "No verification record found. Please request and verify an OTP first.",
+                    },
                     { status: 400 }
                 );
             }
 
-            // STATE 2: Record exists but NOT verified yet → user got the code but hasn't submitted it
             if (!otpData.isUsed) {
-                console.warn("[Activation] OTP exists but has not been verified yet");
-                return NextResponse.json({
-                    success: false,
-                    error: "OTP has not been verified yet. Please complete OTP verification first.",
-                    verified: false
-                }, { status: 403 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "OTP has not been verified yet. Please complete OTP verification first.",
+                        verified: false,
+                    },
+                    { status: 403 }
+                );
             }
 
-            // STATE 3: isUsed === true → ✅ Verification receipt confirmed!
-            // This is the SUCCESS path. The verify route already did the crypto check.
-            console.log("[Activation] ✅ Verification receipt confirmed (isUsed=true)");
-
-            // SECURITY: Cross-check that the activation request matches the verified identity
             if (otpData.identity && otpData.identity !== identity) {
-                console.warn(`[Activation] Identity mismatch: verified=${otpData.identity}, requested=${identity}`);
-                return NextResponse.json({
-                    success: false,
-                    error: "Identity mismatch with verified OTP"
-                }, { status: 403 });
+                return NextResponse.json(
+                    { success: false, error: "Identity mismatch with verified OTP" },
+                    { status: 403 }
+                );
             }
 
-            // Single-use enforcement: CONSUME the receipt now so it can't be replayed
+            // Consume the OTP receipt
             await redis.del(redisOtpKey);
-            console.log("[Activation] Redis: Verification receipt consumed and deleted");
+            console.log("[Activation] Redis: OTP receipt consumed");
         }
 
-        // 4. Guest-to-Guest Reset Abuse Guard
+        // 5. Guest-to-Guest Reset Guard
         if (existingData?.type === "guest" && incomingType === "guest") {
-            console.log("[Activation] Checking Guest Reset Guard...");
             if (existingData.expiresAt > now) {
-                console.log("[Activation] Guest trial still active. Returning existing payload.");
-                // Return existing valid guest token payload
+                console.log("[Activation] Returning existing active guest token");
                 const activationData: ActivationData = {
                     id: deviceId,
-                    type: existingData.type,
+                    type: "guest",
                     createdAt: existingData.createdAt,
                     expiresAt: existingData.expiresAt,
                     gracePeriodEnd: existingData.gracePeriodEnd,
                     fingerprint: existingData.fingerprint,
                     v: TOKEN_VERSION,
                 };
-
                 const secret = process.env.ACTIVATION_SECRET!;
-                const signedPayload = generateSignedPayload(activationData, secret);
-
                 return NextResponse.json({
                     success: true,
                     message: "Trial already active",
-                    payload: signedPayload,
+                    payload: generateSignedPayload(activationData, secret),
                     gracePeriodEnd: existingData.gracePeriodEnd,
                     expiresAt: existingData.expiresAt,
-                    type: existingData.type,
+                    type: "guest",
                 });
             }
 
-            console.warn("[Activation] Guest trial expired. Upgrade required.");
-            return NextResponse.json({
-                success: false,
-                error: "Guest trial expired. Please create an account to continue.",
-                requiresUpgrade: true
-            }, { status: 403 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Guest trial expired. Please create an account to continue.",
+                    requiresUpgrade: true,
+                },
+                { status: 403 }
+            );
         }
 
-        // 5. Advanced Expiry Calculation Logic
+        // 6. Look up / create user in the users table (account only)
+        let userRecord: UserRecord | null = null;
+
+        if (incomingType === "account" && identity && channel) {
+            try {
+                const { user } = await getOrCreateUser(identity, channel, deviceId, now);
+                userRecord = user;
+                console.log(
+                    `[Activation] User: ${user.userId} | role: ${user.role} | shopId: ${user.shopId} | isNew: ${!existingSnap.exists}`
+                );
+            } catch (err: unknown) {
+                if (err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === "SUSPENDED") {
+                    return NextResponse.json(
+                        { success: false, error: "Account has been suspended. Please contact support." },
+                        { status: 403 }
+                    );
+                }
+                throw err; // bubble up unexpected errors
+            }
+        }
+
+        // 7. Expiry Calculation
         let expiresAt: number;
         let gracePeriodEnd: number;
         let createdAt: number = now;
 
         if (existingData) {
-            // CASE A: Upgrading from Guest to Account
             if (existingData.type === "guest" && incomingType === "account") {
-                console.log("[Activation] Case A: Guest -> Account Upgrade");
-                // Calculate remaining time left on the guest trial
+                // Guest → Account upgrade: keep remaining guest time
                 const remainingGuestTime = Math.max(0, existingData.expiresAt - now);
                 expiresAt = now + PACKAGES.guestToAccount.duration + remainingGuestTime;
                 gracePeriodEnd = now + PACKAGES.guestToAccount.grace;
-                createdAt = existingData.createdAt; 
-            } else {
-                console.log("[Activation] Case B: Existing Account Renewal/Update");
-                expiresAt = existingData.expiresAt; 
-                gracePeriodEnd = now + PACKAGES.account.grace; 
                 createdAt = existingData.createdAt;
+                console.log("[Activation] Case A: Guest → Account upgrade");
+            } else {
+                // Existing account renewal
+                expiresAt = existingData.expiresAt;
+                gracePeriodEnd = now + PACKAGES.account.grace;
+                createdAt = existingData.createdAt;
+                console.log("[Activation] Case B: Account renewal");
             }
         } else {
-            // CASE C: Brand New Device (First time hitting your ecosystem)
-            console.log("[Activation] Case C: Brand New Device");
+            // Brand-new device
             expiresAt = now + PACKAGES[incomingType].duration;
             gracePeriodEnd = now + PACKAGES[incomingType].grace;
+            console.log("[Activation] Case C: New device");
         }
 
-        console.log(`[Activation] Calculated Expiry: ${new Date(expiresAt).toISOString()}`);
-
-        // 6. Token Generation
+        // 8. Build and sign token
         const fingerprint = createFingerprint(deviceId, platform);
         const activationData: ActivationData = {
             id: deviceId,
@@ -250,47 +366,73 @@ export async function POST(request: Request) {
             gracePeriodEnd,
             fingerprint,
             v: TOKEN_VERSION,
+            // Embed user identity fields only for account tokens
+            ...(userRecord && {
+                role: userRecord.role,
+                shopId: userRecord.shopId,
+                userId: userRecord.userId,
+            }),
         };
 
         const secret = process.env.ACTIVATION_SECRET;
         if (!secret) throw new Error("Missing ACTIVATION_SECRET");
 
         const signedPayload = generateSignedPayload(activationData, secret);
-        console.log("[Activation] Payload Signed Successfully");
+        console.log("[Activation] Payload signed");
 
-        // 7. Sync State back to Database (Kept in Firestore for permanent record tracking)
-        console.log("[Activation] Updating Firestore...");
-        await regRef.set({
-            deviceId,
-            type: incomingType,
-            status: "active",
-            identity: identity ?? (existingData?.identity || null),
-            channel: channel ?? (existingData?.channel || null),
-            fingerprint,
-            createdAt,
-            expiresAt,
-            gracePeriodEnd,
-            lastVerifiedAt: now,
-            appVersion: appVersion ?? null,
-            platform,
-            updatedAt: now,
-            tokenVersion: TOKEN_VERSION,
-        }, { merge: true });
+        // 9. Persist registration record
+        await regRef.set(
+            {
+                deviceId,
+                type: incomingType,
+                status: "active",
+                identity: identity ?? existingData?.identity ?? null,
+                channel: channel ?? existingData?.channel ?? null,
+                fingerprint,
+                createdAt,
+                expiresAt,
+                gracePeriodEnd,
+                lastVerifiedAt: now,
+                appVersion: appVersion ?? null,
+                platform,
+                updatedAt: now,
+                tokenVersion: TOKEN_VERSION,
+                // Link to user record if account
+                ...(userRecord && {
+                    userId: userRecord.userId,
+                    role: userRecord.role,
+                    shopId: userRecord.shopId,
+                }),
+            },
+            { merge: true }
+        );
 
-        console.log("[Activation] Success! Returning response.");
+        console.log("[Activation] Firestore updated. Returning response.");
         return NextResponse.json({
             success: true,
             payload: signedPayload,
             gracePeriodEnd,
             expiresAt,
             type: incomingType,
+            ...(userRecord && {
+                role: userRecord.role,
+                shopId: userRecord.shopId,
+                isNewUser: !existingData,
+            }),
         });
-
     } catch (error) {
         console.error("[Activation] CRITICAL ERROR:", error);
-        return NextResponse.json({
-            success: false,
-            error: process.env.NODE_ENV === "production" ? "Activation failed" : (error instanceof Error ? error.message : "Unknown error")
-        }, { status: 500 });
+        return NextResponse.json(
+            {
+                success: false,
+                error:
+                    process.env.NODE_ENV === "production"
+                        ? "Activation failed"
+                        : error instanceof Error
+                            ? error.message
+                            : "Unknown error",
+            },
+            { status: 500 }
+        );
     }
 }
