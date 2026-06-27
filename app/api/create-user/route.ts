@@ -7,7 +7,7 @@ import crypto from "crypto";
 // Types
 // ============================================================================
 
-type UserRole = "admin" | "manager" | "cashier";
+type UserRole = "Admin" | "Manager" | "Cashier";
 
 interface TokenClaims {
     userId: string;
@@ -137,7 +137,7 @@ async function requireAdmin(
     }
 
     // Role gate — only admins may create users
-    if (claims.role !== "admin") {
+    if (claims.role !== "Admin") {
         return NextResponse.json(
             {
                 success: false,
@@ -212,7 +212,7 @@ export async function POST(request: Request) {
                 .min(4, "Phone number too short")
                 .max(20, "Phone number too long")
                 .trim(),
-            role: z.enum(["admin", "manager", "cashier"]),
+            role: z.enum(["Admin", "Manager", "Cashier"]),
             timestamp: z.string().optional(), // client-supplied; we use server time
         });
 
