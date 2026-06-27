@@ -221,6 +221,11 @@ export async function POST(request: Request) {
         const validation = schema.safeParse(body);
 
         if (!validation.success) {
+            // 👇 ADD THIS LOG 👇
+            console.warn(
+                "[AdminCreateUser] ❌ Validation Failed:",
+                validation.error.flatten().fieldErrors
+            );
             return NextResponse.json(
                 {
                     success: false,
