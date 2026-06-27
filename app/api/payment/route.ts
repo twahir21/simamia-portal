@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import z from "zod";
 
 const verifySchema = z.object({
-  shopId: z.string().min(1, "Shop ID is required"),
+  deviceId: z.string().min(1, "Shop ID is required"),
   transactionId: z.string().min(1, "Transaction ID is required")
 });
 
@@ -22,10 +22,10 @@ export async function POST(request: Request) {
         }, { status: 400 });
     }
 
-    const { shopId, transactionId } = validation.data;
+    const { deviceId, transactionId } = validation.data;
 
     const result = await adminDb.runTransaction(async (transaction) => {
-      const shopRef = adminDb.collection("shops").doc(shopId);
+      const shopRef = adminDb.collection("shops").doc(deviceId);
       const paymentRef = adminDb.collection("payments").doc(transactionId);
 
       const shopDoc = await transaction.get(shopRef);
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       // Mark payment as used
       transaction.update(paymentRef, { 
         isUsed: true, 
-        usedBy: shopId, 
+        usedBy: deviceId, 
         usedAt: FieldValue.serverTimestamp() 
       });
 
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       // don't fetch from the firestore , it will be old data
       const expiryTimestamp = Math.floor(newExpiryDate.getTime() / 1000);
 
-      const token = generateToken(shopId, expiryTimestamp, "Active");
+      const token = generateToken(deviceId, expiryTimestamp, "Active");
 
       return { token };
     });

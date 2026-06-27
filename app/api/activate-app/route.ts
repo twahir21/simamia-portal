@@ -8,7 +8,7 @@ import { redis } from "@/configs/redis.config";
 // Types & Config
 // ============================================================================
 
-type UserRole = "admin" | "manager" | "cashier";
+type UserRole = "Admin" | "Manager" | "Cashier";
 
 interface UserRecord {
     userId: string;
@@ -103,7 +103,8 @@ async function getOrCreateUser(
     identity: string,
     channel: "phone" | "email",
     deviceId: string,
-    now: number
+    now: number,
+    isLogin: boolean = false // <--- NEW: Added isLogin parameter
 ): Promise<{ user: UserRecord; isNew: boolean }> {
     const userId = deriveUserId(identity);
     const userRef = adminDb.collection("users").doc(userId);
@@ -131,13 +132,19 @@ async function getOrCreateUser(
         return { user: { ...data, userId }, isNew: false };
     }
 
-    // ── Brand-new user: first ever → becomes admin with a fresh shop ──
+    // ── Brand-new user logic ──
+
+    // <--- NEW: Block auto-registration if this is strictly a login request
+    if (isLogin) {
+        throw Object.assign(new Error("User not found. Please register first."), { code: "USER_NOT_FOUND" });
+    }
+
     const shopId = generateShopId();
     const newUser: UserRecord = {
         userId,
         identity,
         channel,
-        role: "admin",          // First user always gets admin
+        role: "Admin", 
         shopId,
         status: "active",
         createdAt: now,
@@ -171,6 +178,7 @@ export async function POST(request: Request) {
             appVersion: z.string(),
             platform: z.enum(["ios", "android", "windows", "macos", "web"]),
             isGuest: z.boolean(),
+            isLogin: z.boolean().optional(),
         });
 
         const validation = schema.safeParse(body);
@@ -182,7 +190,8 @@ export async function POST(request: Request) {
             );
         }
 
-        const { deviceId, identity, channel, appVersion, platform, isGuest } = validation.data;
+        // <--- NEW: Destructure isLogin
+        const { deviceId, identity, channel, appVersion, platform, isGuest, isLogin } = validation.data;
         const now = Date.now();
         const incomingType: "guest" | "account" = isGuest ? "guest" : "account";
 
@@ -313,7 +322,8 @@ export async function POST(request: Request) {
 
         if (incomingType === "account" && identity && channel) {
             try {
-                const { user } = await getOrCreateUser(identity, channel, deviceId, now);
+                // <--- NEW: Pass the isLogin flag to the helper
+                const { user } = await getOrCreateUser(identity, channel, deviceId, now, isLogin === true);
                 userRecord = user;
                 console.log(
                     `[Activation] User: ${user.userId} | role: ${user.role} | shopId: ${user.shopId} | isNew: ${!existingSnap.exists}`
@@ -325,7 +335,16 @@ export async function POST(request: Request) {
                         { status: 403 }
                     );
                 }
-                throw err; // bubble up unexpected errors
+
+                // <--- NEW: Handle the USER_NOT_FOUND error
+                if (err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === "USER_NOT_FOUND") {
+                    return NextResponse.json(
+                        { success: false, error: "Invalid user credentials. Please register first." },
+                        { status: 403 } 
+                    );
+                }
+
+                throw err;
             }
         }
 

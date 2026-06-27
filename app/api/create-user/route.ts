@@ -221,11 +221,6 @@ export async function POST(request: Request) {
         const validation = schema.safeParse(body);
 
         if (!validation.success) {
-            // 👇 ADD THIS LOG 👇
-            console.warn(
-                "[AdminCreateUser] ❌ Validation Failed:",
-                validation.error.flatten().fieldErrors
-            );
             return NextResponse.json(
                 {
                     success: false,
@@ -257,7 +252,7 @@ export async function POST(request: Request) {
 
         const shopRef = adminDb.collection("users");
 
-        const [phoneSnap, nameSnap, existingUserSnap] = await Promise.all([
+        const [phoneSnap, nameSnap] = await Promise.all([
             // Check: phone already in use within this shop
             shopRef
                 .where("shopId", "==", adminClaims.shopId)
