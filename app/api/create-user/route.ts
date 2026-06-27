@@ -67,7 +67,7 @@ function verifyActivationPayload(raw: string, secret: string): TokenClaims {
     if (Date.now() > data.expiresAt) throw new Error("Token expired");
 
     // Enforce it is an account token (not a guest)
-    if (data.type !== "account") throw new Error("Account token required");
+    if (data.type !== "account") throw new Error("Guests are not allowed, please create account");
 
     return {
         userId: data.userId,
