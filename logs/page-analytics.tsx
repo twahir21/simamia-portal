@@ -17,6 +17,9 @@ export default function CustomPageTracker() {
     // Safely execute only on the client side
     if (typeof window === "undefined") return;
 
+    // skip home page for bots 
+    if (pathname === "/") return;
+
     // 1. Get or Create Visitor ID
     let visitorId = localStorage.getItem("custom_visitor_id");
     if (!visitorId) {
