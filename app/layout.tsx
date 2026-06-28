@@ -139,6 +139,42 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@graph": [
+                // ── 1. Organization — sameAs HERE is what triggers social links in Google ──
+                {
+                  "@type": "Organization",
+                  "@id": "https://simamia.co.tz/#organization",
+                  name: "Simamia App",
+                  url: "https://simamia.co.tz",
+                  logo: {
+                    "@type": "ImageObject",
+                    url: "https://simamia.co.tz/og-simamia.webp",
+                  },
+                  telephone: "+255798700900",
+                  address: {
+                    "@type": "PostalAddress",
+                    streetAddress: "27a Kurasini Rd",
+                    addressLocality: "Dar es Salaam",
+                    addressRegion: "Dar es Salaam",
+                    addressCountry: "TZ",
+                  },
+                  contactPoint: {
+                    "@type": "ContactPoint",
+                    contactType: "customer support",
+                    availableLanguage: ["English", "Swahili"],
+                    telephone: "+255798700900",
+                  },
+                  // ✅ sameAs INSIDE Organization — this is what Google reads
+                  sameAs: [
+                    "https://www.facebook.com/simamiaapp",
+                    "https://www.instagram.com/simamia_app",
+                    "https://www.tiktok.com/@simamia_app",
+                    "https://www.youtube.com/@SimamiaApp",
+                    "https://www.threads.com/@simamia_app",
+                    "https://www.linkedin.com/in/simamia-app-a23b88419",
+                  ],
+                },
+
+                // ── 2. SoftwareApplication — references Organization via @id ──
                 {
                   "@type": "SoftwareApplication",
                   "@id": "https://simamia.co.tz/#application",
@@ -149,22 +185,16 @@ export default function RootLayout({
                     "Programu nyepesi ya Kiswahili ya kusimamia biashara, mauzo, stoki na madeni bila bando (offline) kwa wafanyabiashara wa Tanzania.",
                   url: "https://simamia.co.tz",
                   image: "https://simamia.co.tz/og-simamia.webp",
-                  featureList:
-                    "Offline mode, Mauzo na Matumizi, Udhibiti wa Stoki, Usimamizi wa Madeni, Ripoti za Faida",
+                  featureList: [
+                    "Offline mode",
+                    "Mauzo na Matumizi",
+                    "Udhibiti wa Stoki",
+                    "Usimamizi wa Madeni",
+                    "Ripoti za Faida",
+                  ],
+                  // Link back to the Organization node above
                   publisher: {
-                    "@type": "Organization",
                     "@id": "https://simamia.co.tz/#organization",
-                    name: "Simamia App",
-                    url: "https://simamia.co.tz",
-                    logo: "https://simamia.co.tz/og-simamia.webp",
-                    telephone: "+255798700900",
-                    address: {
-                      "@type": "PostalAddress",
-                      "streetAddress": "27a Kurasini Rd", // <<-- WEKA MTAA/ENEO ULILOJAZA KWENYE GOOGLE BUSINESS PROFILE
-                      "addressLocality": "Dar es Salaam",
-                      "addressRegion": "Dar es Salaam",
-                      "addressCountry": "TZ"
-                    }
                   },
                   offers: {
                     "@type": "Offer",
@@ -176,10 +206,12 @@ export default function RootLayout({
                     name: "Tanzania",
                   },
                 },
+
+                // ── 3. FAQPage ───────────────────────────────────────────────
                 {
                   "@type": "FAQPage",
                   "@id": "https://simamia.co.tz/#faq",
-                  mainEntity: faqSchema.mainEntity, // Hapa inavuta yale maswali yetu mapya moja kwa moja
+                  mainEntity: faqSchema.mainEntity,
                 },
               ],
             }),

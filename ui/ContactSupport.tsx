@@ -1,12 +1,7 @@
 import React from 'react';
 import {
-    MessageCircle,
     MapPin,
     Clock,
-    Facebook,
-    Instagram,
-    Twitter,
-    Music,
     Phone,
     Store,
     TrendingUp,
@@ -19,6 +14,8 @@ import {
     ChevronRight,
     LucideProps
 } from 'lucide-react';
+import { FaFacebook, FaInstagram, FaTiktok, FaWhatsapp, FaYoutube, FaLinkedin } from 'react-icons/fa6';
+import { SiThreads } from 'react-icons/si';
 import { motion } from 'framer-motion';
 
 const ContactSupport = () => {
@@ -98,11 +95,48 @@ const ContactSupport = () => {
     ];
 
     const socialLinks = [
-        { name: 'Facebook', icon: Facebook, url: 'https://facebook.com/simamia_app', color: 'bg-blue-600 hover:bg-blue-700' },
-        { name: 'Instagram', icon: Instagram, url: 'https://instagram.com/simamia_app', color: 'bg-linear-to-tr from-yellow-400 via-red-500 to-purple-500 hover:opacity-90' },
-        { name: 'Twitter (X)', icon: Twitter, url: 'https://twitter.com/simamia_app', color: 'bg-slate-900 hover:bg-slate-800' },
-        { name: 'TikTok', icon: Music, url: 'https://tiktok.com/@simamia_app', color: 'bg-black hover:bg-gray-900' },
-        { name: 'WhatsApp', icon: MessageCircle, url: `https://wa.me/${whatsappNumber}`, color: 'bg-emerald-500 hover:bg-emerald-600' }
+        {
+            name: 'Facebook',
+            icon: FaFacebook,
+            url: 'https://www.facebook.com/simamiaapp',
+            color: 'bg-blue-600 hover:bg-blue-700',
+        },
+        {
+            name: 'Instagram',
+            icon: FaInstagram,
+            url: 'https://instagram.com/simamia_app',
+            color: 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 hover:opacity-90',
+        },
+        {
+            name: 'TikTok',
+            icon: FaTiktok,
+            url: 'https://www.tiktok.com/@simamia_app',
+            color: 'bg-black hover:bg-gray-900',
+        },
+        {
+            name: 'YouTube',
+            icon: FaYoutube,
+            url: 'https://www.youtube.com/@SimamiaApp',
+            color: 'bg-red-600 hover:bg-red-700',
+        },
+        {
+            name: 'Threads',
+            icon: SiThreads,
+            url: 'https://www.threads.com/@simamia_app',
+            color: 'bg-black hover:bg-gray-900',
+        },
+        {
+            name: 'LinkedIn',
+            icon: FaLinkedin,
+            url: 'https://www.linkedin.com/in/simamia-app-a23b88419',
+            color: 'bg-sky-700 hover:bg-sky-800',
+        },
+        {
+            name: 'WhatsApp',
+            icon: FaWhatsapp,
+            url: `https://wa.me/${whatsappNumber}`,
+            color: 'bg-emerald-500 hover:bg-emerald-600',
+        },
     ];
 
     const handleTopicSelect = (topic: Topic) => {
