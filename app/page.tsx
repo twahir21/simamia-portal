@@ -128,7 +128,7 @@ export default function Hero() {
               <Image
                 src={playStoreBadge}
                 alt="Pakua kwenye Google Play"
-                quality={100}
+                // quality={100}
                 className="w-full h-full object-contain opacity-40 select-none pointer-events-none"
               />
             </div>
