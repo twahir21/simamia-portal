@@ -14,7 +14,7 @@ export default function DownloadPage() {
       <div className="absolute inset-0 z-0">
         <Image
           src="/apk-bg.jpg"
-          alt="Background"
+          alt="Download"
           fill
           className="object-cover"
           priority
