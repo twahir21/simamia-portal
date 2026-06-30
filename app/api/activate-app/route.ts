@@ -104,7 +104,7 @@ async function getOrCreateUser(
     channel: "phone" | "email",
     deviceId: string,
     now: number,
-    isLogin: boolean = false // <--- NEW: Added isLogin parameter
+    mode: "new" | "existing" = "existing"
 ): Promise<{ user: UserRecord; isNew: boolean }> {
     const userId = deriveUserId(identity);
     const userRef = adminDb.collection("users").doc(userId);
@@ -132,19 +132,21 @@ async function getOrCreateUser(
         return { user: { ...data, userId }, isNew: false };
     }
 
-    // ── Brand-new user logic ──
+    // ── No existing user found ──
 
-    // <--- NEW: Block auto-registration if this is strictly a login request
-    if (isLogin) {
-        throw Object.assign(new Error("User not found. Please register first."), { code: "USER_NOT_FOUND" });
+    // If the user explicitly chose "Join Existing Account" but we have no record,
+    // don't auto-create — let the caller return a friendly "not found" response.
+    if (mode === "existing") {
+        throw Object.assign(new Error("Account not found"), { code: "ACCOUNT_NOT_FOUND" });
     }
 
+    // mode === "new" → create it
     const shopId = generateShopId();
     const newUser: UserRecord = {
         userId,
         identity,
         channel,
-        role: "Admin", 
+        role: "Admin",
         shopId,
         status: "active",
         createdAt: now,
@@ -159,7 +161,6 @@ async function getOrCreateUser(
 
     return { user: newUser, isNew: true };
 }
-
 // ============================================================================
 // API Route
 // ============================================================================
@@ -178,7 +179,7 @@ export async function POST(request: Request) {
             appVersion: z.string(),
             platform: z.enum(["ios", "android", "windows", "macos", "web"]),
             isGuest: z.boolean(),
-            isLogin: z.boolean().optional(),
+            mode: z.enum(["new", "existing"]).optional().default("existing"),
         });
 
         const validation = schema.safeParse(body);
@@ -190,8 +191,8 @@ export async function POST(request: Request) {
             );
         }
 
-        // <--- NEW: Destructure isLogin
-        const { deviceId, identity, channel, appVersion, platform, isGuest, isLogin } = validation.data;
+        // <--- NEW: Destructure mode
+        const { deviceId, identity, channel, appVersion, platform, isGuest, mode } = validation.data;
         const now = Date.now();
         const incomingType: "guest" | "account" = isGuest ? "guest" : "account";
 
@@ -322,8 +323,7 @@ export async function POST(request: Request) {
 
         if (incomingType === "account" && identity && channel) {
             try {
-                // <--- NEW: Pass the isLogin flag to the helper
-                const { user } = await getOrCreateUser(identity, channel, deviceId, now, isLogin === true);
+                const { user } = await getOrCreateUser(identity, channel, deviceId, now, mode);
                 userRecord = user;
                 console.log(
                     `[Activation] User: ${user.userId} | role: ${user.role} | shopId: ${user.shopId} | isNew: ${!existingSnap.exists}`
@@ -336,11 +336,14 @@ export async function POST(request: Request) {
                     );
                 }
 
-                // <--- NEW: Handle the USER_NOT_FOUND error
-                if (err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === "USER_NOT_FOUND") {
+                if (err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === "ACCOUNT_NOT_FOUND") {
                     return NextResponse.json(
-                        { success: false, error: "Invalid user credentials. Please register first." },
-                        { status: 403 } 
+                        {
+                            success: false,
+                            accountNotFound: true,
+                            error: "We couldn't find an account with these details. Would you like to create a new one instead?",
+                        },
+                        { status: 404 }
                     );
                 }
 
