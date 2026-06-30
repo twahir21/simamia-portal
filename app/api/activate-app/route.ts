@@ -3,6 +3,7 @@ import { adminDb } from "@/firebase/admin.firebase";
 import z from "zod";
 import crypto from "crypto";
 import { redis } from "@/configs/redis.config";
+import { FieldValue } from "firebase-admin/firestore";
 
 // ============================================================================
 // Types & Config
@@ -99,74 +100,74 @@ function deriveUserId(identity: string): string {
  * Fetches an existing user or creates a brand-new admin user.
  * Returns the full UserRecord and whether it was just created.
  */
-async function getOrCreateUser(
+export async function getOrCreateUser(
     identity: string,
     channel: "phone" | "email",
     deviceId: string,
     now: number,
-    mode: "new" | "existing" = "existing"
+    mode: "new" | "existing" = "existing",
+    boundShopId?: string | null   // shopId this device is already locked to, if any
 ): Promise<{ user: UserRecord; isNew: boolean }> {
     const userId = deriveUserId(identity);
     const userRef = adminDb.collection("users").doc(userId);
-    const snap = await userRef.get();
 
-    if (snap.exists) {
-        const data = snap.data() as UserRecord;
+    return await adminDb.runTransaction(async (transaction) => {
+        const snap = await transaction.get(userRef);
 
-        // Check account isn't suspended
-        if (data.status === "suspended") {
-            throw Object.assign(new Error("Account suspended"), { code: "SUSPENDED" });
-        }
+        if (snap.exists) {
+            const data = snap.data() as UserRecord;
 
-        // Track this device against the user (union so no duplicates)
-        if (!data.deviceIds?.includes(deviceId)) {
-            await userRef.update({
-                deviceIds: [...(data.deviceIds ?? []), deviceId],
+            if (data.status === "suspended") {
+                throw Object.assign(new Error("Account suspended"), { code: "SUSPENDED" });
+            }
+
+            // Cross-shop hijack guard — block before any write happens
+            if (boundShopId && data.shopId !== boundShopId) {
+                throw Object.assign(new Error("Device bound to a different shop"), { code: "SHOP_MISMATCH" });
+            }
+
+            transaction.update(userRef, {
+                deviceIds: FieldValue.arrayUnion(deviceId),
                 lastLoginAt: now,
                 updatedAt: now,
             });
-        } else {
-            await userRef.update({ lastLoginAt: now, updatedAt: now });
+
+            const updatedDeviceIds = data.deviceIds.includes(deviceId)
+                ? data.deviceIds
+                : [...data.deviceIds, deviceId];
+
+            return { user: { ...data, deviceIds: updatedDeviceIds, userId }, isNew: false };
         }
 
-        return { user: { ...data, userId }, isNew: false };
-    }
+        if (mode === "existing") {
+            throw Object.assign(new Error("Account not found"), { code: "ACCOUNT_NOT_FOUND" });
+        }
 
-    // ── No existing user found ──
+        if (boundShopId) {
+            // shouldn't normally hit this, the route-level "new" check above catches it first
+            throw Object.assign(new Error("Device bound to a different shop"), { code: "SHOP_MISMATCH" });
+        }
 
-    // If the user explicitly chose "Join Existing Account" but we have no record,
-    // don't auto-create — let the caller return a friendly "not found" response.
-    if (mode === "existing") {
-        throw Object.assign(new Error("Account not found"), { code: "ACCOUNT_NOT_FOUND" });
-    }
+        const shopId = generateShopId();
+        const newUser: UserRecord = {
+            userId, identity, channel, role: "Admin", shopId, status: "active",
+            createdAt: now, updatedAt: now, lastLoginAt: now, displayName: null,
+            deviceIds: [deviceId],
+        };
 
-    // mode === "new" → create it
-    const shopId = generateShopId();
-    const newUser: UserRecord = {
-        userId,
-        identity,
-        channel,
-        role: "Admin",
-        shopId,
-        status: "active",
-        createdAt: now,
-        updatedAt: now,
-        lastLoginAt: now,
-        displayName: null,
-        deviceIds: [deviceId],
-    };
-
-    await userRef.set(newUser);
-    console.log(`[Activation] Created new admin user: ${userId}, shopId: ${shopId}`);
-
-    return { user: newUser, isNew: true };
+        transaction.set(userRef, newUser);
+        return { user: newUser, isNew: true };
+    });
 }
+
 // ============================================================================
 // API Route
 // ============================================================================
 
 export async function POST(request: Request) {
     console.log("[Activation] Incoming request...");
+    let redisOtpKey: string | null = null;
+
     try {
         const body = await request.json();
         console.log("[Activation] Request Body:", JSON.stringify(body, null, 2));
@@ -230,19 +231,18 @@ export async function POST(request: Request) {
                 );
             }
 
-            // Prevent device hijacking
-            if (
-                existingData?.type === "account" &&
-                existingData.identity &&
-                existingData.identity !== identity
-            ) {
+            // A device already tied to a shop can't be used to spin up a brand-new shop.
+            if (mode === "new" && existingData?.type === "account" && existingData.shopId) {
                 return NextResponse.json(
-                    { success: false, error: "This device is already linked to a different account" },
+                    {
+                        success: false,
+                        error: "This device is already linked to a shop. Sign in with an existing account instead.",
+                    },
                     { status: 403 }
                 );
             }
 
-            const redisOtpKey = `otps:${channel}:${identity}`;
+            redisOtpKey = `otps:${channel}:${identity}`;
             const otpData = await redis.get<{
                 isUsed?: boolean;
                 deviceId?: string | null;
@@ -279,9 +279,6 @@ export async function POST(request: Request) {
                 );
             }
 
-            // Consume the OTP receipt
-            await redis.del(redisOtpKey);
-            console.log("[Activation] Redis: OTP receipt consumed");
         }
 
         // 5. Guest-to-Guest Reset Guard
@@ -323,7 +320,8 @@ export async function POST(request: Request) {
 
         if (incomingType === "account" && identity && channel) {
             try {
-                const { user } = await getOrCreateUser(identity, channel, deviceId, now, mode);
+                const boundShopId = existingData?.type === "account" ? existingData.shopId ?? null : null;
+                const { user } = await getOrCreateUser(identity, channel, deviceId, now, mode, boundShopId);
                 userRecord = user;
                 console.log(
                     `[Activation] User: ${user.userId} | role: ${user.role} | shopId: ${user.shopId} | isNew: ${!existingSnap.exists}`
@@ -332,6 +330,13 @@ export async function POST(request: Request) {
                 if (err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === "SUSPENDED") {
                     return NextResponse.json(
                         { success: false, error: "Account has been suspended. Please contact support." },
+                        { status: 403 }
+                    );
+                }
+
+                if (err instanceof Error && (err as any).code === "SHOP_MISMATCH") {
+                    return NextResponse.json(
+                        { success: false, error: "This device is already linked to a different shop." },
                         { status: 403 }
                     );
                 }
@@ -430,6 +435,13 @@ export async function POST(request: Request) {
         );
 
         console.log("[Activation] Firestore updated. Returning response.");
+
+        // Consume the OTP receipt
+        if (redisOtpKey) {
+            await redis.del(redisOtpKey);
+            console.log("[Activation] Redis: OTP receipt consumed safely after DB writes.");
+        }
+
         return NextResponse.json({
             success: true,
             payload: signedPayload,
