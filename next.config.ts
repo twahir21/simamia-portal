@@ -11,14 +11,16 @@ const nextConfig = {
     ];
   },
   async headers() {
+    const allowedOrigin = "https://app.simamia.co.tz";
+
     return [
       {
         // Match all API routes
         source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
-          // For local development, you can use '*' or explicitly put your local port
-          { key: "Access-Control-Allow-Origin", value: "*" },
+          // 🛡️ Explicit origin restriction instead of the dangerous wildcard "*"
+          { key: "Access-Control-Allow-Origin", value: allowedOrigin },
           { key: "Access-Control-Allow-Methods", value: "GET,DELETE,PATCH,POST,PUT,OPTIONS" },
           { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" },
         ]
